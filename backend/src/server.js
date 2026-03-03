@@ -18,7 +18,7 @@ app.use("/api/auth/", authRouter);
 app.use("/api/messages/", messagesRouter);
 
 // make ready for deployment
-if (ENV.NODE_ENV === "development") {
+if (ENV.NODE_ENV === "development" || ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
@@ -30,3 +30,4 @@ connectDB();
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // welcome emails needs to be fixed
+
