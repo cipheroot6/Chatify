@@ -1,31 +1,37 @@
+import { useEffect } from "react";
+import { useChatStore } from "../store/useChatStore";
+import UsersLoadingSkeleton from "./UsersLoadingSkeleton";
+import { useAuthStore } from "../store/useAuthStore";
+
 function ContactList() {
+  const { getAllContacts, allContacts, setSelectedUser, isUsersLoading } = useChatStore();
+  const { onlineUsers } = useAuthStore();
+
+  useEffect(() => {
+    getAllContacts();
+  }, [getAllContacts]);
+
+  if (isUsersLoading) return <UsersLoadingSkeleton />;
+
   return (
-    <div className="space-y-2">
-      <div className="contact-item p-3 rounded-lg hover:bg-slate-700/50 cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="avatar online">
-            <div className="w-12 h-12 rounded-full bg-slate-600"></div>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium text-slate-200">Alice Johnson</h3>
-            <p className="text-sm text-slate-400">Online</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="contact-item p-3 rounded-lg hover:bg-slate-700/50 cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="avatar offline">
-            <div className="w-12 h-12 rounded-full bg-slate-600"></div>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium text-slate-200">Bob Williams</h3>
-            <p className="text-sm text-slate-400">Offline</p>
+    <>
+      {allContacts.map((contact) => (
+        <div
+          key={contact._id}
+          className="bg-cyan-500/10 p-4 rounded-lg cursor-pointer hover:bg-cyan-500/20 transition-colors"
+          onClick={() => setSelectedUser(contact)}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`avatar ${onlineUsers.includes(contact._id) ? "online" : "offline"}`}>
+              <div className="size-12 rounded-full">
+                <img src={contact.profilePic || "/avatar.png"} />
+              </div>
+            </div>
+            <h4 className="text-slate-200 font-medium">{contact.fullName}</h4>
           </div>
         </div>
-      </div>
-    </div>
+      ))}
+    </>
   );
 }
-
 export default ContactList;

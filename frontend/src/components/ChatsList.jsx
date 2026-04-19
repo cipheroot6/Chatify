@@ -1,37 +1,45 @@
+import { useChatStore } from "../store/useChatStore";
+import { useEffect } from "react";
+import UsersLoadingSkeleton from "./UsersLoadingSkeleton";
+import NoChatsFound from "./NoChatsFound";
+
 function ChatsList() {
+  const { getMyChatPartners, chats, isUsersLoading, setSelectedUser } =
+    useChatStore();
+
+  useEffect(() => {
+    getMyChatPartners();
+  }, [getMyChatPartners]);
+
+  if (isUsersLoading) return <UsersLoadingSkeleton />;
+  if (chats.length === 0) return <NoChatsFound />;
+
   return (
-    <div className="space-y-2">
-      <div className="chat-item bg-slate-700/50 p-3 rounded-lg">
-        <div className="flex items-center gap-3">
-          <div className="avatar online">
-            <div className="w-12 h-12 rounded-full bg-slate-600"></div>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-slate-200">John Doe</h3>
-              <span className="text-xs text-slate-400">10:30 AM</span>
+    <>
+      {chats.map((chat) => (
+        <div
+          key={chat._id}
+          className="bg-cyan-500/10 p-4 rounded-lg cursor-pointer hover:bg-cyan-500/20 transition-colors"
+          onClick={() => setSelectedUser(chat)}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`avatar ${onlineUsers.includes(chat._id) ? "online" : "offline"}`}
+            >
+              <div className="size-12 rounded-full">
+                <img
+                  src={chat.profilePic || "/avatar.png"}
+                  alt={chat.fullName}
+                />
+              </div>
             </div>
-            <p className="text-sm text-slate-400 truncate">Last message...</p>
+            <h4 className="text-slate-200 font-medium truncate">
+              {chat.fullName}
+            </h4>
           </div>
         </div>
-      </div>
-      
-      <div className="chat-item p-3 rounded-lg">
-        <div className="flex items-center gap-3">
-          <div className="avatar online">
-            <div className="w-12 h-12 rounded-full bg-slate-600"></div>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-slate-200">Jane Smith</h3>
-              <span className="text-xs text-slate-400">Yesterday</span>
-            </div>
-            <p className="text-sm text-slate-400 truncate">Another message...</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      ))}
+    </>
   );
 }
-
 export default ChatsList;
