@@ -6,6 +6,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
@@ -42,6 +43,7 @@ function App() {
           </Routes>
         </div>
       </div>
+      <Analytics />
       <Toaster />
     </div>
   );
