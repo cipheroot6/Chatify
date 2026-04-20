@@ -11,7 +11,15 @@ const app = express();
 const __dirname = path.resolve();
 
 app.use(cookieParser());
-app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "http://localhost:5173",
+      "https://chatify-cipheroots-projects.vercel.app",
+    ],
+  }),
+);
 app.use(express.json());
 
 app.use("/api/auth/", authRouter);
@@ -25,7 +33,7 @@ if (ENV.NODE_ENV === "production") {
   });
 }
 const PORT = ENV.PORT;
-connectDB();
+await connectDB();
 
 export default app;
 // welcome emails needs to be fixed
