@@ -27,6 +27,5 @@ if (ENV.NODE_ENV === "production") {
 const PORT = ENV.PORT;
 connectDB();
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+export default app;
 // welcome emails needs to be fixed
