@@ -14,7 +14,7 @@ const messagesRouter = express.Router();
 // auth req get rate limited before hitting auth route
 messagesRouter.use(arcjetProtection, isAuthorized);
 
-messagesRouter.get("/contact", getAllContacts);
+messagesRouter.get("/contacts", getAllContacts);
 messagesRouter.get("/chats", getChatPartner);
 messagesRouter.get("/:id", getMessagesByUserId);
 messagesRouter.post("/send/:id", sendMessage);

@@ -1,5 +1,6 @@
 import Message from "../models/message.js";
 import User from "../models/User.model.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const getAllContacts = async (req, res) => {
   try {
@@ -21,7 +22,7 @@ export const getMessagesByUserId = async (req, res) => {
 
     const messages = await Message.find({
       $or: [
-        { senderId: myId, receiver: userToChatId },
+        { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiver: myId },
       ],
     });
@@ -43,7 +44,9 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ message: "Text or image is required" });
     }
     if (senderId === receiverId) {
-      return res.status(400).json({ message: "Cannot send message to yourself" });
+      return res
+        .status(400)
+        .json({ message: "Cannot send message to yourself" });
     }
     const receiverExists = await User.exists({ _id: receiverId });
     if (!receiverExists) {
@@ -57,7 +60,7 @@ export const sendMessage = async (req, res) => {
       imageUrl = uploadedResponse.secure_url;
     }
 
-    const message = await Message({
+    const message = new Message({
       senderId,
       receiverId,
       text,
@@ -82,15 +85,15 @@ export const getChatPartner = async (req, res) => {
       $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
     });
 
-    const chatPartnerIds = {
-      ...new set(
+    const chatPartnerIds = Array.from(
+      new Set(
         messages.map((msg) =>
           msg.senderId.toString() === loggedInUserId.toString()
             ? msg.receiverId.toString()
             : msg.senderId.toString(),
         ),
       ),
-    };
+    );
 
     const chatPartners = await User.find({
       _id: { $in: chatPartnerIds },
