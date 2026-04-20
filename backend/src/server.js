@@ -25,15 +25,12 @@ app.use(express.json());
 app.use("/api/auth/", authRouter);
 app.use("/api/messages/", messagesRouter);
 
-// make ready for deployment
-if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  });
-}
 const PORT = ENV.PORT;
-await connectDB();
+
+const startServer = async () => {
+  await connectDB();
+};
+startServer();
 
 export default app;
 // welcome emails needs to be fixed
