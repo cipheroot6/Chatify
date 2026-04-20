@@ -26,10 +26,9 @@ export const useAuthStore = create((set) => ({
     try {
       const res = await axiosInstance.post("/api/auth/sign-up", data);
       set({ authUser: res.data });
-
       toast.success("Account created successfully");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
       set({ isSigningUp: false });
     }
@@ -40,10 +39,9 @@ export const useAuthStore = create((set) => ({
     try {
       const res = await axiosInstance.post("/api/auth/login", data);
       set({ authUser: res.data });
-
       toast.success("Logged in successfully");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
       set({ isLogingIn: false });
     }
@@ -67,7 +65,7 @@ export const useAuthStore = create((set) => ({
       toast.success("Profile updated successfully");
     } catch (error) {
       console.log("Error in update profile:", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
-  }
+  },
 }));
