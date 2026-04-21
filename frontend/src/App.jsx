@@ -2,6 +2,7 @@ import { Navigate, Routes, Route } from "react-router";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
@@ -40,6 +41,7 @@ function App() {
               path="/signup"
               element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
             />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
       </div>
