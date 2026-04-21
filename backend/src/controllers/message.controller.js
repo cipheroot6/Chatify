@@ -23,7 +23,7 @@ export const getMessagesByUserId = async (req, res) => {
     const messages = await Message.find({
       $or: [
         { senderId: myId, receiverId: userToChatId },
-        { senderId: userToChatId, receiver: myId },
+        { senderId: userToChatId, receiverId: myId },
       ],
     });
 
