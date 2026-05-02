@@ -1,6 +1,7 @@
 import Message from "../models/message.js";
 import User from "../models/User.model.js";
 import cloudinary from "../lib/cloudinary.js";
+import pusher from "../lib/pusher.js";
 
 export const getAllContacts = async (req, res) => {
   try {
@@ -68,7 +69,9 @@ export const sendMessage = async (req, res) => {
     });
 
     await message.save();
-    // todo: send message in real-time if user is online - socket.io
+
+    await pusher.trigger(`private-user-${receiverId}`, "new-message", message);
+
     res.status(201).json(message);
   } catch (error) {
     console.error("Error in sendMessage controller:", error);

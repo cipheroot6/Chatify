@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import { toast } from "react-hot-toast";
+import pusher from "../lib/pusher.js";
 
 export const useAuthStore = create((set) => ({
   authUser: null,
@@ -13,6 +14,7 @@ export const useAuthStore = create((set) => ({
     try {
       const res = await axiosInstance.get("/api/auth/check");
       set({ authUser: res.data });
+      pusher.signin();
     } catch (error) {
       console.log("Error checking auth:", error);
       set({ authUser: null });
@@ -39,6 +41,7 @@ export const useAuthStore = create((set) => ({
     try {
       const res = await axiosInstance.post("/api/auth/login", data);
       set({ authUser: res.data });
+      pusher.signin();
       toast.success("Logged in successfully");
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
@@ -51,6 +54,7 @@ export const useAuthStore = create((set) => ({
     try {
       await axiosInstance.post("/api/auth/logout");
       set({ authUser: null });
+      pusher.disconnect();
       toast.success("Logged out successfully");
     } catch (error) {
       toast.error("Error logging out");

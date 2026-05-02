@@ -1,0 +1,103 @@
+/* ─── Google Fonts ─── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+/* ─── CSS vars ─── */
+:root {
+  --cyan-400: #22d3ee;
+  --cyan-500: #06b6d4;
+  --pink-400: #f472b6;
+  --pink-500: #ec4899;
+  --slate-900: #0f172a;
+}
+
+/* ─── Fonts ─── */
+.font-syne    { font-family: 'Syne', sans-serif; }
+.font-mono-jb { font-family: 'JetBrains Mono', monospace; }
+
+/* ─── Animated border (conic gradient) ─── */
+@property --border-angle {
+  inherits: false;
+  initial-value: 0deg;
+  syntax: '<angle>';
+}
+
+.mockup-border {
+  background:
+    linear-gradient(45deg, #172033, #1e293b 50%, #172033) padding-box,
+    conic-gradient(
+      from var(--border-angle),
+      rgba(148,163,184,.25) 80%,
+      var(--cyan-500) 86%,
+      #67e8f9 90%,
+      var(--cyan-500) 94%,
+      rgba(148,163,184,.25)
+    ) border-box;
+  border: 1px solid transparent;
+  animation: border-spin 4s linear infinite;
+}
+@keyframes border-spin { to { --border-angle: 360deg; } }
+
+/* ─── Infinite marquee ─── */
+.marquee-wrapper { overflow: hidden; }
+.marquee-track {
+  display: flex;
+  gap: 1.2rem;
+  width: max-content;
+  animation: marquee 36s linear infinite;
+}
+.marquee-wrapper:hover .marquee-track { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ─── Scroll reveal ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.in-view { opacity: 1; transform: none; }
+
+/* ─── Step line ─── */
+.steps-line::before {
+  content: '';
+  position: absolute;
+  left: 21px; top: 28px; bottom: 28px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--cyan-500), transparent);
+}
+
+/* ─── Rotating conic on builder card ─── */
+.builder-conic::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, transparent 80%, rgba(6,182,212,.12) 90%, transparent);
+  animation: spin-slow 9s linear infinite;
+}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+/* ─── Pulsing logo dot ─── */
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .4; transform: scale(.65); }
+}
+
+/* ─── Blinking cursor ─── */
+.blink { animation: blink 1.2s step-end infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ─── Glow box shadow ─── */
+.shadow-cyan { box-shadow: 0 0 28px rgba(6,182,212,.22); }
+.shadow-cyan-lg { box-shadow: 0 0 60px rgba(6,182,212,.12), 0 40px 120px rgba(0,0,0,.55); }
+
+/* ─── Fade-up keyframe (staggered in hero) ─── */
+.fade-up { animation: fade-up .7s ease both; }
+.fade-up-1 { animation-delay: .1s; }
+.fade-up-2 { animation-delay: .22s; }
+.fade-up-3 { animation-delay: .36s; }
+.fade-up-4 { animation-delay: .5s; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

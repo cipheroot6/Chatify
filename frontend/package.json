@@ -13,6 +13,7 @@
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.13.5",
     "lucide-react": "^0.575.0",
+    "pusher-js": "^8.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",

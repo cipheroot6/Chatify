@@ -3,6 +3,7 @@ import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import LandingPage from "./pages/LandingPage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
@@ -30,16 +31,20 @@ function App() {
         <div className="relative z-10 w-full">
           <Routes>
             <Route
-              path="/"
+              path="/inbox"
               element={authUser ? <ChatPage /> : <Navigate to="/login" />}
             />
             <Route
+              path="/"
+              element={!authUser ? <LandingPage /> : <Navigate to="/inbox" />}
+            />
+            <Route
               path="/login"
-              element={!authUser ? <LoginPage /> : <Navigate to="/" />}
+              element={!authUser ? <LoginPage /> : <Navigate to="/inbox" />}
             />
             <Route
               path="/signup"
-              element={!authUser ? <SignUpPage /> : <Navigate to="/" />}
+              element={!authUser ? <SignUpPage /> : <Navigate to="/inbox" />}
             />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

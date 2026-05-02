@@ -4,6 +4,7 @@ import { generateToken } from "../lib/utils.js";
 import { ENV } from "../lib/env.js";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import cloudinary from "../lib/cloudinary.js";
+import pusher from "../lib/pusher.js";
 
 export const signUp = async (req, res, next) => {
   const { fullName, email, password } = req.body;
@@ -123,5 +124,47 @@ export const updateProfile = async (req, res) => {
   } catch (error) {
     console.error("Error in updateProfile controller:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// --- Add these to the bottom of auth.controller.js ---
+
+export const pusherChannelAuth = async (req, res) => {
+  try {
+    const socketId = req.body.socket_id;
+    const channel = req.body.channel_name;
+    const user = req.user; // Assuming your protectRoute middleware sets req.user
+
+    // Authorize the user to join this specific private channel
+    const authResponse = pusher.authorizeChannel(socketId, channel, {
+      user_id: user._id.toString(),
+      user_info: {
+        fullName: user.fullName,
+        email: user.email,
+      },
+    });
+    
+    res.send(authResponse);
+  } catch (error) {
+    console.error("Pusher Channel Auth Error:", error);
+    res.status(500).json({ message: "Pusher channel authorization failed" });
+  }
+};
+
+export const pusherUserAuth = async (req, res) => {
+  try {
+    const socketId = req.body.socket_id;
+    const user = req.user; 
+
+    // Tell Pusher who this user globally is
+    const authResponse = pusher.authenticateUser(socketId, {
+      id: user._id.toString(),
+      name: user.fullName,
+    });
+    
+    res.send(authResponse);
+  } catch (error) {
+    console.error("Pusher User Auth Error:", error);
+    res.status(500).json({ message: "Pusher user authentication failed" });
   }
 };
