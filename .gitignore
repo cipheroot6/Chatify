@@ -1,13 +1,6 @@
 **/node_modules/
 **/.env
-**/AGENTS.md 
-chatifycompleted
 **/**.zip
-
-AGENTS.md
-ERRORS.md
-MEMORY.md
-SOLUTIONS.md
 
 **/*.md 
 !**/README.md 

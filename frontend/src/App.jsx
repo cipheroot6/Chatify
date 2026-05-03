@@ -9,6 +9,9 @@ import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/react";
+import EmailSentPage from "./pages/EmailSentPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 function App() {
   const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
@@ -30,6 +33,9 @@ function App() {
         <div className="absolute bottom-0 -right-4 size-96 bg-cyan-500 opacity-20 blur-[100px]" />
         <div className="relative z-10 w-full">
           <Routes>
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/email-sent" element={<EmailSentPage />} />
             <Route
               path="/inbox"
               element={authUser ? <ChatPage /> : <Navigate to="/login" />}

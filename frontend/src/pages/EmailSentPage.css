@@ -1,0 +1,500 @@
+/* ── EmailSentPage.css ─────────────────────────────────────────────────────
+   Matches the app's slate-900 / cyan-500 / pink-500 theme exactly.
+   Uses the same conic-gradient border animation as BorderAnimatedContainer.
+   All class names are prefixed with "esp-" to avoid collisions.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* ── CSS custom property for the rotating border ── */
+@property --esp-border-angle {
+  inherits: false;
+  initial-value: 0deg;
+  syntax: "<angle>";
+}
+
+/* ── Stagger animation delays ── */
+@keyframes esp-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes esp-border-spin {
+  to { --esp-border-angle: 360deg; }
+}
+
+@keyframes esp-pulse-ring {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.08); }
+}
+
+@keyframes esp-dot-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1);  opacity: 1; }
+}
+
+@keyframes esp-envelope-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
+
+@keyframes esp-spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes esp-countdown-tick {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ROOT / LAYOUT
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-root {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: #0f172a; /* slate-900 — matches app bg */
+  overflow: hidden;
+}
+
+/* Grid overlay — identical to app's grid decorator */
+.esp-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, #4f4f4f2e 1px, transparent 1px),
+    linear-gradient(to bottom, #4f4f4f2e 1px, transparent 1px);
+  background-size: 14px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow orbs — mirror app's pink / cyan decorators */
+.esp-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.esp-orb--pink {
+  top: -2rem;
+  left: -4rem;
+  width: 28rem;
+  height: 28rem;
+  background: #ec4899;
+  opacity: 0.08;
+  filter: blur(80px);
+}
+
+.esp-orb--cyan {
+  bottom: -2rem;
+  right: -4rem;
+  width: 28rem;
+  height: 28rem;
+  background: #06b6d4;
+  opacity: 0.1;
+  filter: blur(80px);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   CARD WRAPPER
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-card-wrap {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Animated conic-gradient border — mirrors BorderAnimatedContainer exactly */
+.esp-card {
+  width: 100%;
+  background:
+    linear-gradient(45deg, #172033, #1e293b 50%, #172033) padding-box,
+    conic-gradient(
+      from var(--esp-border-angle),
+      rgba(100, 116, 139, 0.35) 80%,
+      #06b6d4 86%,
+      #67e8f9 90%,
+      #06b6d4 94%,
+      rgba(100, 116, 139, 0.35)
+    ) border-box;
+  border: 1px solid transparent;
+  border-radius: 1.25rem;
+  animation: esp-border-spin 4s linear infinite;
+
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+
+  /* Stagger children in */
+  & > * {
+    animation: esp-fade-up 0.55s ease both;
+  }
+  & > *:nth-child(1) { animation-delay: 0.05s; }
+  & > *:nth-child(2) { animation-delay: 0.13s; }
+  & > *:nth-child(3) { animation-delay: 0.21s; }
+  & > *:nth-child(4) { animation-delay: 0.29s; }
+  & > *:nth-child(5) { animation-delay: 0.37s; }
+  & > *:nth-child(6) { animation-delay: 0.44s; }
+  & > *:nth-child(7) { animation-delay: 0.51s; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ICON AREA
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-icon-ring {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+
+/* Pulsing outer ring */
+.esp-icon-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  animation: esp-pulse-ring 2.8s ease-in-out infinite;
+}
+
+/* Inner circle housing the icon */
+.esp-icon-inner {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(6, 182, 212, 0.04));
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Envelope icon */
+.esp-envelope {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #22d3ee; /* cyan-400 */
+  animation: esp-envelope-float 3.5s ease-in-out infinite;
+}
+
+/* "New mail" indicator dot */
+.esp-dot {
+  animation: esp-dot-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+  transform-origin: 38px 14px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   COPY SECTION
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-copy {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.esp-heading {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: #e2e8f0; /* slate-200 */
+  letter-spacing: -0.025em;
+  margin: 0 0 0.875rem;
+  line-height: 1.2;
+}
+
+.esp-subtext {
+  font-size: 0.875rem;
+  color: #94a3b8; /* slate-400 */
+  margin: 0 0 0.5rem;
+  line-height: 1.6;
+}
+
+.esp-subtext--small {
+  font-size: 0.8125rem;
+  margin-top: 0.75rem;
+}
+
+.esp-subtext--small strong {
+  color: #cbd5e1; /* slate-300 */
+  font-weight: 600;
+}
+
+/* Email address pill */
+.esp-email-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  margin-top: 0.25rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.esp-email-at {
+  font-size: 0.75rem;
+  color: #22d3ee; /* cyan-400 */
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.esp-email-text {
+  font-size: 0.8125rem;
+  color: #cbd5e1; /* slate-300 */
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DIVIDER
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(100, 116, 139, 0.35) 20%,
+    rgba(100, 116, 139, 0.35) 80%,
+    transparent
+  );
+  margin-bottom: 1.5rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RESEND SECTION
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-resend-block {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.esp-resend-label {
+  font-size: 0.8125rem;
+  color: #64748b; /* slate-500 */
+  margin: 0 0 0.75rem;
+}
+
+.esp-resend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6875rem 1.25rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  /* Default: outlined style */
+  background: transparent;
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: #22d3ee;
+}
+
+.esp-resend-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 182, 212, 0.06);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.esp-resend-btn:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.esp-resend-btn:hover:not(:disabled) {
+  border-color: rgba(6, 182, 212, 0.6);
+  color: #67e8f9;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.12);
+}
+
+.esp-resend-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.esp-resend-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #64748b;
+}
+
+/* Spinner inside resend button */
+.esp-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(6, 182, 212, 0.3);
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: esp-spinner-rotate 0.7s linear infinite;
+}
+
+/* Countdown badge */
+.esp-countdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: 9999px;
+  background: rgba(100, 116, 139, 0.2);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.03em;
+  animation: esp-countdown-tick 1s ease infinite;
+}
+
+/* Resend follow-up note */
+.esp-resend-note {
+  margin: 0.625rem 0 0;
+  font-size: 0.75rem;
+  color: #475569; /* slate-600 */
+  line-height: 1.5;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TIPS / CHECKLIST
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-tips {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(100, 116, 139, 0.28);
+  border-radius: 0.75rem;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.esp-tips-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8; /* slate-400 */
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0 0 0.625rem;
+}
+
+.esp-tips-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.esp-tip-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #94a3b8; /* slate-400 */
+  line-height: 1.4;
+}
+
+.esp-tip-dot {
+  flex-shrink: 0;
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: 50%;
+  background: rgba(6, 182, 212, 0.7);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   FOOTER LINKS
+   ───────────────────────────────────────────────────────────────────────── */
+.esp-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.esp-footer-link {
+  font-size: 0.8125rem;
+  color: #64748b; /* slate-500 — up from slate-600 */
+  text-decoration: none;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+}
+
+.esp-footer-link:hover {
+  color: #22d3ee; /* cyan-400 */
+}
+
+.esp-footer-sep {
+  width: 1px;
+  height: 0.875rem;
+  background: rgba(100, 116, 139, 0.35);
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .esp-card {
+    padding: 2rem 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .esp-heading {
+    font-size: 1.375rem;
+  }
+
+  .esp-icon-ring {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .esp-icon-inner {
+    width: 4.25rem;
+    height: 4.25rem;
+  }
+
+  .esp-envelope {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .esp-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .esp-footer-sep {
+    display: none;
+  }
+}
