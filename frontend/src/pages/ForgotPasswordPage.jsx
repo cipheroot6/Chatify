@@ -9,7 +9,6 @@ import {
   ArrowLeftIcon,
   SendIcon,
 } from "lucide-react";
-import "./ForgotPasswordPage.css";
 
 const PHASE = {
   IDLE:    "idle",
@@ -37,14 +36,10 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center p-4 bg-slate-900">
-      {/*
-        Explicit height mirrors LoginPage exactly so BorderAnimatedContainer
-        has a real height to fill and the conic border renders correctly.
-      */}
-      <div className="relative w-full max-w-md h-[500px]">
+    <div className="w-full flex items-center justify-center p-4 bg-transparent min-h-[calc(100vh-100px)]">
+      <div className="relative w-full max-w-md">
         <BorderAnimatedContainer>
-          <div className="w-full h-full flex flex-col items-center justify-center p-10">
+          <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-slate-800/50 backdrop-blur-xl rounded-2xl">
 
             {/* ── Header ─────────────────────────────────────────────── */}
             <div className="text-center mb-8 w-full">
@@ -63,20 +58,20 @@ export default function ForgotPasswordPage() {
 
             {/* ── SENT state ─────────────────────────────────────────── */}
             {phase === PHASE.SENT ? (
-              <div className="fpp-sent-block w-full">
-                <div className="fpp-sent-icon-wrap">
-                  <SendIcon className="fpp-sent-icon" />
+              <div className="w-full flex flex-col items-center">
+                <div className="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mb-6">
+                  <SendIcon className="w-8 h-8 text-cyan-400" />
                 </div>
 
-                <p className="fpp-sent-body">
+                <p className="text-slate-300 text-center mb-8 leading-relaxed">
                   If an account exists for{" "}
-                  <span className="fpp-sent-email">{email}</span>, you'll
+                  <span className="text-cyan-400 font-medium">{email}</span>, you'll
                   receive a link shortly. Check your spam folder if needed.
                 </p>
 
                 <button
                   type="button"
-                  className="fpp-btn w-full"
+                  className="auth-btn"
                   onClick={() => { setEmail(""); setPhase(PHASE.IDLE); }}
                 >
                   Try a different email
@@ -103,7 +98,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  className="fpp-btn w-full"
+                  className="auth-btn"
                   disabled={phase === PHASE.LOADING || !email.trim()}
                 >
                   {phase === PHASE.LOADING
@@ -114,12 +109,12 @@ export default function ForgotPasswordPage() {
             )}
 
             {/* ── Back link ──────────────────────────────────────────── */}
-            <div className="mt-6 text-center">
+            <div className="mt-6 w-full text-center">
               <Link
                 to="/login"
-                className="auth-link inline-flex items-center gap-1.5"
+                className="flex items-center justify-center gap-2 text-slate-400 hover:text-cyan-400 text-sm transition-colors py-2"
               >
-                <ArrowLeftIcon className="w-3.5 h-3.5" />
+                <ArrowLeftIcon className="w-4 h-4" />
                 Back to login
               </Link>
             </div>

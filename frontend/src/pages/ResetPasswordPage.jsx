@@ -10,7 +10,6 @@ import {
   LoaderIcon,
   ArrowLeftIcon,
 } from "lucide-react";
-import "./ResetPasswordPage.css";
 
 const PHASE = {
   IDLE:    "idle",
@@ -64,10 +63,10 @@ export default function ResetPasswordPage() {
   // ── No token in URL ─────────────────────────────────────────────────────
   if (phase === "no_token") {
     return (
-      <div className="w-full flex items-center justify-center p-4 bg-slate-900">
-        <div className="relative w-full max-w-md h-[400px]">
+      <div className="w-full flex items-center justify-center p-4 bg-transparent min-h-[calc(100vh-100px)]">
+        <div className="relative w-full max-w-md">
           <BorderAnimatedContainer>
-            <div className="w-full h-full flex flex-col items-center justify-center p-10 text-center">
+            <div className="w-full h-full flex flex-col items-center justify-center p-10 text-center bg-slate-800/50 backdrop-blur-xl rounded-2xl">
               <MessageCircleIcon className="w-12 h-12 mx-auto text-slate-400 mb-4" />
               <h2 className="text-2xl font-bold text-slate-200 mb-2">
                 Invalid link
@@ -75,12 +74,12 @@ export default function ResetPasswordPage() {
               <p className="text-slate-400 text-sm mb-6 leading-relaxed">
                 This reset link is missing its token. Please request a new one.
               </p>
-              <Link to="/forgot-password" className="fpp-btn rpp-btn-full">
+              <Link to="/forgot-password" className="auth-btn text-center w-full block">
                 Request a new link
               </Link>
-              <div className="mt-4">
-                <Link to="/login" className="auth-link inline-flex items-center gap-1.5">
-                  <ArrowLeftIcon className="w-3.5 h-3.5" />
+              <div className="w-full mt-4">
+                <Link to="/login" className="flex items-center justify-center gap-2 text-slate-400 hover:text-cyan-400 text-sm transition-colors py-2">
+                  <ArrowLeftIcon className="w-4 h-4" />
                   Back to login
                 </Link>
               </div>
@@ -92,10 +91,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="w-full flex items-center justify-center p-4 bg-slate-900">
-      <div className="relative w-full max-w-md h-[560px]">
+    <div className="w-full flex items-center justify-center p-4 bg-transparent min-h-[calc(100vh-100px)]">
+      <div className="relative w-full max-w-md">
         <BorderAnimatedContainer>
-          <div className="w-full h-full flex flex-col items-center justify-center p-10">
+          <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-slate-800/50 backdrop-blur-xl rounded-2xl">
 
             {/* ── Header ─────────────────────────────────────────────── */}
             <div className="text-center mb-8 w-full">
@@ -112,12 +111,11 @@ export default function ResetPasswordPage() {
 
             {/* ── SUCCESS ────────────────────────────────────────────── */}
             {phase === PHASE.SUCCESS ? (
-              <div className="rpp-success-block">
-                <div className="rpp-success-icon-wrap">
-                  <svg className="rpp-checkmark" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+              <div className="w-full flex flex-col items-center">
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-8 h-8 text-emerald-400" viewBox="0 0 52 52" fill="none" aria-hidden="true">
                     <circle cx="26" cy="26" r="24" stroke="currentColor" strokeWidth="2" />
                     <path
-                      className="rpp-check-path"
                       d="M14 27 L22 35 L38 18"
                       stroke="currentColor"
                       strokeWidth="2.5"
@@ -127,12 +125,9 @@ export default function ResetPasswordPage() {
                     />
                   </svg>
                 </div>
-                <p className="rpp-success-body">
+                <p className="text-slate-300 text-center">
                   Your password has been changed. Redirecting to login…
                 </p>
-                <div className="rpp-progress-bar">
-                  <div className="rpp-progress-fill" />
-                </div>
               </div>
             ) : (
               /* ── FORM ──────────────────────────────────────────────── */
@@ -147,14 +142,14 @@ export default function ResetPasswordPage() {
                       type={show.password ? "text" : "password"}
                       value={form.password}
                       onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                      className={`input pr-10 ${tooShort ? "rpp-input-error" : ""}`}
+                      className={`input pr-10 ${tooShort ? "border-rose-500 focus:ring-rose-500" : ""}`}
                       placeholder="Min. 6 characters"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={() => toggle("password")}
-                      className="rpp-eye-btn"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                       tabIndex={-1}
                       aria-label={show.password ? "Hide password" : "Show password"}
                     >
@@ -164,7 +159,7 @@ export default function ResetPasswordPage() {
                     </button>
                   </div>
                   {tooShort && (
-                    <p className="rpp-field-error">Must be at least 6 characters.</p>
+                    <p className="text-rose-400 text-xs mt-1">Must be at least 6 characters.</p>
                   )}
                 </div>
 
@@ -177,13 +172,13 @@ export default function ResetPasswordPage() {
                       type={show.confirm ? "text" : "password"}
                       value={form.confirm}
                       onChange={(e) => setForm((f) => ({ ...f, confirm: e.target.value }))}
-                      className={`input pr-10 ${mismatch ? "rpp-input-error" : ""}`}
+                      className={`input pr-10 ${mismatch ? "border-rose-500 focus:ring-rose-500" : ""}`}
                       placeholder="Repeat your password"
                     />
                     <button
                       type="button"
                       onClick={() => toggle("confirm")}
-                      className="rpp-eye-btn"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
                       tabIndex={-1}
                       aria-label={show.confirm ? "Hide password" : "Show password"}
                     >
@@ -193,18 +188,18 @@ export default function ResetPasswordPage() {
                     </button>
                   </div>
                   {mismatch && (
-                    <p className="rpp-field-error">Passwords don't match.</p>
+                    <p className="text-rose-400 text-xs mt-1">Passwords don't match.</p>
                   )}
                 </div>
 
                 {/* Server error */}
                 {serverError && (
-                  <p className="rpp-server-error">{serverError}</p>
+                  <p className="text-rose-400 text-sm text-center">{serverError}</p>
                 )}
 
                 <button
                   type="submit"
-                  className="fpp-btn rpp-btn-full"
+                  className="auth-btn"
                   disabled={!canSubmit || phase === PHASE.LOADING}
                 >
                   {phase === PHASE.LOADING
@@ -216,12 +211,12 @@ export default function ResetPasswordPage() {
 
             {/* ── Back link ──────────────────────────────────────────── */}
             {phase !== PHASE.SUCCESS && (
-              <div className="mt-6 text-center">
+              <div className="mt-6 w-full text-center">
                 <Link
                   to="/forgot-password"
-                  className="auth-link inline-flex items-center gap-1.5"
+                  className="flex items-center justify-center gap-2 text-slate-400 hover:text-cyan-400 text-sm transition-colors py-2"
                 >
-                  <ArrowLeftIcon className="w-3.5 h-3.5" />
+                  <ArrowLeftIcon className="w-4 h-4" />
                   Request a new link
                 </Link>
               </div>

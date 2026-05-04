@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
+import BorderAnimatedContainer from "../components/BorderAnimatedContainer";
+import { MailIcon, LoaderIcon, ArrowLeftIcon } from "lucide-react";
 import toast from "react-hot-toast";
-import "./EmailSentPage.css";
 
 export default function EmailSentPage() {
   const [searchParams] = useSearchParams();
@@ -14,7 +15,6 @@ export default function EmailSentPage() {
 
   const { resendVerification } = useAuthStore();
 
-  // Tick down the cooldown timer
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const id = setInterval(() => setResendCooldown((n) => n - 1), 1000);
@@ -38,136 +38,63 @@ export default function EmailSentPage() {
   };
 
   return (
-    <div className="esp-root">
-      {/* Ambient orbs — matches app's pink/cyan decorators */}
-      <div className="esp-orb esp-orb--pink" />
-      <div className="esp-orb esp-orb--cyan" />
-
-      {/* Grid overlay — matches app's grid background */}
-      <div className="esp-grid" />
-
-      <div className="esp-card-wrap">
-        {/* Animated border card — mirrors BorderAnimatedContainer */}
-        <div className="esp-card">
-
-          {/* ── ICON AREA ─────────────────────────────────────────── */}
-          <div className="esp-icon-ring">
-            <div className="esp-icon-pulse" />
-            <div className="esp-icon-inner">
-              {/* Envelope SVG */}
-              <svg
-                className="esp-envelope"
-                viewBox="0 0 48 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                {/* Envelope body */}
-                <rect
-                  x="4" y="12" width="40" height="28"
-                  rx="4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                {/* Envelope flap (V chevron) */}
-                <path
-                  d="M4 16 L24 30 L44 16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                {/* Animated dot — "new mail" indicator */}
-                <circle
-                  className="esp-dot"
-                  cx="38" cy="14" r="6"
-                  fill="#22d3ee"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* ── COPY ──────────────────────────────────────────────── */}
-          <div className="esp-copy">
-            <h1 className="esp-heading">Check your inbox</h1>
-
-            <p className="esp-subtext">
-              We sent a verification link to
-            </p>
-            <div className="esp-email-pill">
-              <span className="esp-email-at">@</span>
-              <span className="esp-email-text">{email}</span>
-            </div>
-            <p className="esp-subtext esp-subtext--small">
-              Click the link inside to activate your account.
-              It expires in&nbsp;<strong>24 hours</strong>.
-            </p>
-          </div>
-
-          {/* ── DIVIDER ───────────────────────────────────────────── */}
-          <div className="esp-divider" />
-
-          {/* ── RESEND SECTION ────────────────────────────────────── */}
-          <div className="esp-resend-block">
-            <p className="esp-resend-label">Didn't get it?</p>
-
-            <button
-              className="esp-resend-btn"
-              onClick={handleResend}
-              disabled={resendCooldown > 0 || isResending}
-            >
-              {isResending ? (
-                <span className="esp-spinner" />
-              ) : resendCooldown > 0 ? (
-                <>
-                  <span className="esp-countdown">{resendCooldown}s</span>
-                  Resend available in&nbsp;{resendCooldown}s
-                </>
-              ) : (
-                "Resend verification email"
-              )}
-            </button>
-
-            {resendCount > 0 && (
-              <p className="esp-resend-note">
-                Email sent {resendCount > 1 ? `${resendCount} times` : "again"}.
-                Check your spam folder if it's not showing up.
+    <div className="w-full flex items-center justify-center p-4 bg-transparent min-h-[calc(100vh-100px)]">
+      <div className="relative w-full max-w-md">
+        <BorderAnimatedContainer>
+          <div className="w-full h-full flex flex-col items-center justify-center p-10 bg-slate-800/50 backdrop-blur-xl rounded-2xl">
+            {/* ── Header ─────────────────────────────────────────────── */}
+            <div className="text-center mb-8 w-full">
+              <MailIcon className="w-12 h-12 mx-auto text-cyan-400 mb-4" />
+              <h2 className="text-2xl font-bold text-slate-200 mb-2">
+                Check your inbox
+              </h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                We sent a verification link to
               </p>
-            )}
-          </div>
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-slate-800/80 border border-slate-700/50">
+                <span className="text-cyan-400 font-medium">{email}</span>
+              </div>
+              <p className="text-slate-500 text-xs mt-4">
+                Click the link inside to activate your account. It expires in 24 hours.
+              </p>
+            </div>
 
-          {/* ── CHECKLIST ─────────────────────────────────────────── */}
-          <div className="esp-tips">
-            <p className="esp-tips-title">No email yet? Try these:</p>
-            <ul className="esp-tips-list">
-              {[
-                "Check your spam or junk folder",
-                "Make sure you used the correct email",
-                "Wait a minute — delivery can take a moment",
-                "Add us to your contacts to avoid spam filters",
-              ].map((tip) => (
-                <li key={tip} className="esp-tip-item">
-                  <span className="esp-tip-dot" />
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* ── RESEND SECTION ────────────────────────────────────── */}
+            <div className="w-full mb-6">
+              <button
+                className="auth-btn w-full flex items-center justify-center gap-2"
+                onClick={handleResend}
+                disabled={resendCooldown > 0 || isResending}
+              >
+                {isResending ? (
+                  <LoaderIcon className="h-5 w-5 animate-spin mx-auto" />
+                ) : resendCooldown > 0 ? (
+                  `Resend available in ${resendCooldown}s`
+                ) : (
+                  "Resend verification email"
+                )}
+              </button>
 
-          {/* ── FOOTER LINKS ──────────────────────────────────────── */}
-          <div className="esp-footer">
-            <Link to="/login" className="esp-footer-link">
-              ← Back to login
-            </Link>
-            <span className="esp-footer-sep" />
-            <Link to="/signup" className="esp-footer-link">
-              Wrong email? Sign up again
-            </Link>
-          </div>
+              {resendCount > 0 && (
+                <p className="text-slate-400 text-xs text-center mt-3">
+                  Email sent {resendCount > 1 ? `${resendCount} times` : "again"}.
+                  Check your spam folder.
+                </p>
+              )}
+            </div>
 
-        </div>
+            {/* ── FOOTER LINKS ──────────────────────────────────────── */}
+            <div className="mt-6 text-center w-full pt-4 border-t border-slate-700/50 flex flex-col gap-3">
+              <Link to="/login" className="flex items-center justify-center gap-2 text-slate-400 hover:text-cyan-400 text-sm transition-colors w-full">
+                <ArrowLeftIcon className="w-4 h-4" />
+                Back to login
+              </Link>
+              <Link to="/signup" className="text-slate-500 hover:text-cyan-400 text-sm transition-colors mt-2">
+                Wrong email? Sign up again
+              </Link>
+            </div>
+          </div>
+        </BorderAnimatedContainer>
       </div>
     </div>
   );
