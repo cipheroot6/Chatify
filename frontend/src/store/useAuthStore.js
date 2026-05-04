@@ -26,14 +26,32 @@ export const useAuthStore = create((set) => ({
   signUp: async (data) => {
     set({ isSigningUp: true });
     try {
-      const res = await axiosInstance.post("/api/auth/sign-up", data);
-      set({ authUser: res.data });
-      toast.success("Account created successfully");
+      await axiosInstance.post("/api/auth/sign-up", data);
+      toast.success("Account created. Please check your email.");
+      return true;
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
+      return false;
     } finally {
       set({ isSigningUp: false });
     }
+  },
+
+  verifyEmail: async (token) => {
+    const res = await axiosInstance.get(`/api/auth/verify-email?token=${token}`);
+    set({ authUser: res.data });
+  },
+
+  resendVerification: async (email) => {
+    await axiosInstance.post("/api/auth/resend-verification", { email });
+  },
+
+  forgotPassword: async (email) => {
+    await axiosInstance.post("/api/auth/forgot-password", { email });
+  },
+
+  resetPassword: async (token, password) => {
+    await axiosInstance.post("/api/auth/reset-password", { token, password });
   },
 
   login: async (data) => {

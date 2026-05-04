@@ -2,9 +2,11 @@ import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import { ENV } from "../lib/env.js";
-import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import { sendWelcomeEmail, sendVerificationEmail, sendPasswordResetEmail } from "../emails/emailHandlers.js";
 import cloudinary from "../lib/cloudinary.js";
 import pusher from "../lib/pusher.js";
+import { logger } from "../lib/logger.js";
+import { generateRawToken, hashToken, tokenExpiry } from "../lib/tokens.js";
 
 export const signUp = async (req, res, next) => {
   const { fullName, email, password } = req.body;
@@ -41,32 +43,35 @@ export const signUp = async (req, res, next) => {
       password: hashedPassword,
     });
 
+    const rawToken = generateRawToken();
+    const hashedToken = hashToken(rawToken);
+
+    newUser.emailVerificationToken = hashedToken;
+    newUser.emailVerificationExpires = tokenExpiry(24);
+
     if (newUser) {
-      const savedUser = await newUser.save();
-      generateToken(savedUser._id, res);
+      await newUser.save();
+      
       res.status(201).json({
-        _id: newUser._id,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        profilePic: newUser.profilePic,
+        message: "Account created. Please check your email to verify your account.",
+        email,
       });
 
       try {
-        await sendWelcomeEmail(email, fullName, ENV.CLIENT_URL);
+        const verificationURL = `${ENV.CLIENT_URL}/verify-email?token=${rawToken}`;
+        await sendVerificationEmail(email, fullName, verificationURL);
       } catch (error) {
-        console.error("Error sending welcome email:", error);
+        logger.error("Error sending welcome email:", error);
       }
     } else {
       return res.status(500).json({ message: "Internal server error" });
     }
   } catch (error) {
-    console.log("error in signup");
-    res.status(500).json({ message: "Internal server error at sign-up route" });
     next(error);
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -84,6 +89,14 @@ export const login = async (req, res) => {
       return res.status(404).json({ message: "Invalid credentials" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in.",
+        needsVerification: true,
+        email: user.email,
+      });
+    }
+
     generateToken(user._id, res);
 
     res.status(200).json({
@@ -93,8 +106,7 @@ export const login = async (req, res) => {
       profilePic: user.profilePic,
     });
   } catch (error) {
-    console.error("error in login controller: ", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
@@ -103,7 +115,7 @@ export const logout = (_, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res, next) => {
   try {
     const { profilePic } = req.body;
     if (!profilePic) {
@@ -122,14 +134,136 @@ export const updateProfile = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error("Error in updateProfile controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
 // --- Add these to the bottom of auth.controller.js ---
 
-export const pusherChannelAuth = async (req, res) => {
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ message: "Verification token is missing" });
+    }
+
+    const hashedToken = hashToken(token);
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired verification token",
+      });
+    }
+
+    user.isVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await user.save();
+
+    // Issue the JWT and log them in automatically
+    generateToken(user._id, res);
+
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Return 200 even if user doesn't exist to prevent email enumeration
+      return res.status(200).json({ message: "If that email exists, a new link has been sent." });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "This account is already verified." });
+    }
+
+    const rawToken = generateRawToken();
+    user.emailVerificationToken = hashToken(rawToken);
+    user.emailVerificationExpires = tokenExpiry(24);
+    await user.save();
+
+    const verificationURL = `${ENV.CLIENT_URL}/verify-email?token=${rawToken}`;
+    await sendVerificationEmail(user.email, user.fullName, verificationURL);
+
+    res.status(200).json({ message: "If that email exists, a new link has been sent." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Always return 200 to prevent email enumeration
+      return res.status(200).json({ message: "If that email exists, a password reset link has been sent." });
+    }
+
+    const rawToken = generateRawToken();
+    user.resetPasswordToken = hashToken(rawToken);
+    user.resetPasswordExpires = tokenExpiry(1); // 1 hour expiration
+    await user.save();
+
+    const resetURL = `${ENV.CLIENT_URL}/reset-password?token=${rawToken}`;
+    await sendPasswordResetEmail(user.email, user.fullName, resetURL);
+
+    res.status(200).json({ message: "If that email exists, a password reset link has been sent." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    const hashedToken = hashToken(token);
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token. Please request a new one.",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful. Please log in." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const pusherChannelAuth = async (req, res, next) => {
   try {
     const socketId = req.body.socket_id;
     const channel = req.body.channel_name;
@@ -146,12 +280,11 @@ export const pusherChannelAuth = async (req, res) => {
     
     res.send(authResponse);
   } catch (error) {
-    console.error("Pusher Channel Auth Error:", error);
-    res.status(500).json({ message: "Pusher channel authorization failed" });
+    next(error);
   }
 };
 
-export const pusherUserAuth = async (req, res) => {
+export const pusherUserAuth = async (req, res, next) => {
   try {
     const socketId = req.body.socket_id;
     const user = req.user; 
@@ -164,7 +297,6 @@ export const pusherUserAuth = async (req, res) => {
     
     res.send(authResponse);
   } catch (error) {
-    console.error("Pusher User Auth Error:", error);
-    res.status(500).json({ message: "Pusher user authentication failed" });
+    next(error);
   }
 };

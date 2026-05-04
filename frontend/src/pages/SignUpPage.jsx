@@ -8,7 +8,7 @@ import {
   UserIcon,
   LoaderIcon,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -18,9 +18,14 @@ function SignUpPage() {
   });
   const { signUp, isSigningUp } = useAuthStore();
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    signUp(formData);
+    const success = await signUp(formData);
+    if (success) {
+      navigate(`/email-sent?email=${encodeURIComponent(formData.email)}`);
+    }
   };
 
   return (

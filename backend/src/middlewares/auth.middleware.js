@@ -19,10 +19,13 @@ export const isAuthorized = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Email not verified" });
+    }
+
     req.user = user;
     next();
   } catch (error) {
-    console.error("Error in isAuthorized middleware:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };

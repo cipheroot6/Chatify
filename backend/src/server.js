@@ -7,6 +7,8 @@ import messagesRouter from "./routes/messages.route.js";
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cors from "cors";
+import { errorHandler } from "./middlewares/errorHandler.js";
+import { logger } from "./lib/logger.js";
 
 const app = express();
 const __dirname = path.resolve();
@@ -32,18 +34,20 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/api/auth/", authRouter);
 app.use("/api/messages/", messagesRouter);
 
+app.use(errorHandler);
+
 const PORT = ENV.PORT;
 
 const startServer = async () => {
   await connectDB();
   if (process.env.NODE_ENV !== "production") {
-    const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    const server = app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
 
     server.on("error", (err) => {
       if (err.code === "EADDRINUSE") {
-        console.error(`Port ${PORT} is already in use. Stop the existing process or change PORT in your env.`);
+        logger.error(`Port ${PORT} is already in use. Stop the existing process or change PORT in your env.`);
       } else {
-        console.error("Server error:", err);
+        logger.error("Server error:", err);
       }
     });
   }

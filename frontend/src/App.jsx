@@ -12,6 +12,7 @@ import { Analytics } from "@vercel/analytics/react";
 import EmailSentPage from "./pages/EmailSentPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
@@ -36,6 +37,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/email-sent" element={<EmailSentPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/inbox"
               element={authUser ? <ChatPage /> : <Navigate to="/login" />}

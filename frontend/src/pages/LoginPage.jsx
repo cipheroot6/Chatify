@@ -92,7 +92,14 @@ function LoginPage({ myName }) {
                     )}
                   </button>
                 </form>
-
+                <div className="mt-3 text-center">
+                  <Link
+                    to="/forgot-password"
+                    className="text-slate-500 text-sm hover:text-cyan-400 transition-colors p-2"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
                 <div className="mt-6 text-center">
                   <Link to="/signup" className="auth-link">
                     Don't have an account? Join now

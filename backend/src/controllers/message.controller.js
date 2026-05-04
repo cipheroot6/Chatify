@@ -3,7 +3,7 @@ import User from "../models/User.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import pusher from "../lib/pusher.js";
 
-export const getAllContacts = async (req, res) => {
+export const getAllContacts = async (req, res, next) => {
   try {
     const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({
@@ -11,12 +11,11 @@ export const getAllContacts = async (req, res) => {
     }).select("-password");
     res.status(200).json(filteredUsers);
   } catch (error) {
-    console.error("Error in getAllMessages controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
-export const getMessagesByUserId = async (req, res) => {
+export const getMessagesByUserId = async (req, res, next) => {
   try {
     const myId = req.user._id;
     const { id: userToChatId } = req.params;
@@ -30,12 +29,11 @@ export const getMessagesByUserId = async (req, res) => {
 
     res.status(200).json(messages);
   } catch (error) {
-    console.error("Error in getMessagesByUserId controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
-export const sendMessage = async (req, res) => {
+export const sendMessage = async (req, res, next) => {
   try {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
@@ -74,12 +72,11 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(message);
   } catch (error) {
-    console.error("Error in sendMessage controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };
 
-export const getChatPartner = async (req, res) => {
+export const getChatPartner = async (req, res, next) => {
   try {
     const loggedInUserId = req.user._id;
 
@@ -104,7 +101,6 @@ export const getChatPartner = async (req, res) => {
 
     res.status(200).json(chatPartners);
   } catch (error) {
-    console.error("Error in getChatPartner controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    next(error);
   }
 };

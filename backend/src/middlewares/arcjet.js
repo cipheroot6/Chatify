@@ -1,5 +1,6 @@
 import aj from "../lib/arcjet.js";
 import { isSpoofedBot } from "@arcjet/inspect";
+import { logger } from "../lib/logger.js";
 
 export const arcjetProtection = async (req, res, next) => {
   try {
@@ -28,7 +29,7 @@ export const arcjetProtection = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log("arcjet error", error);
+    logger.error("arcjet error", error);
     next(error);
   }
 };

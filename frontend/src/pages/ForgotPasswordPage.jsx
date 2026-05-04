@@ -12,15 +12,15 @@ import {
 import "./ForgotPasswordPage.css";
 
 const PHASE = {
-  IDLE:      "idle",
-  LOADING:   "loading",
-  SENT:      "sent",
+  IDLE:    "idle",
+  LOADING: "loading",
+  SENT:    "sent",
 };
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail]   = useState("");
-  const [phase, setPhase]   = useState(PHASE.IDLE);
-  const { forgotPassword }  = useAuthStore();
+  const [email, setEmail]  = useState("");
+  const [phase, setPhase]  = useState(PHASE.IDLE);
+  const { forgotPassword } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email.trim().toLowerCase());
     } catch {
-      // Always show the same message — never reveal whether email exists
+      // Always show sent — never reveal whether the email exists
     } finally {
       setPhase(PHASE.SENT);
     }
@@ -38,55 +38,53 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="w-full flex items-center justify-center p-4 bg-slate-900">
-      <div className="relative w-full max-w-md fpp-card-height">
+      {/*
+        Explicit height mirrors LoginPage exactly so BorderAnimatedContainer
+        has a real height to fill and the conic border renders correctly.
+      */}
+      <div className="relative w-full max-w-md h-[500px]">
         <BorderAnimatedContainer>
-          <div className="w-full flex flex-col p-8 justify-center">
+          <div className="w-full h-full flex flex-col items-center justify-center p-10">
 
-            {/* ── Header ──────────────────────────────────────────── */}
-            <div className="text-center mb-8">
+            {/* ── Header ─────────────────────────────────────────────── */}
+            <div className="text-center mb-8 w-full">
               <MessageCircleIcon className="w-12 h-12 mx-auto text-slate-400 mb-4" />
               <h2 className="text-2xl font-bold text-slate-200 mb-2">
-                Forgot your password?
+                {phase === PHASE.SENT
+                  ? "Check your inbox"
+                  : "Forgot your password?"}
               </h2>
               <p className="text-slate-400 text-sm leading-relaxed">
                 {phase === PHASE.SENT
-                  ? "Check your inbox for next steps."
+                  ? "A reset link is on its way if that address is registered."
                   : "Enter your email and we'll send you a reset link."}
               </p>
             </div>
 
-            {/* ── SENT state ──────────────────────────────────────── */}
+            {/* ── SENT state ─────────────────────────────────────────── */}
             {phase === PHASE.SENT ? (
-              <div className="fpp-sent-block">
-                {/* Icon */}
+              <div className="fpp-sent-block w-full">
                 <div className="fpp-sent-icon-wrap">
                   <SendIcon className="fpp-sent-icon" />
                 </div>
 
-                {/* Copy */}
-                <p className="fpp-sent-heading">Link sent (if registered)</p>
                 <p className="fpp-sent-body">
                   If an account exists for{" "}
-                  <span className="fpp-sent-email">{email}</span>, a reset link
-                  is on its way. Check your spam folder if it doesn't arrive
-                  within a minute.
+                  <span className="fpp-sent-email">{email}</span>, you'll
+                  receive a link shortly. Check your spam folder if needed.
                 </p>
 
-                {/* Try a different email */}
                 <button
                   type="button"
-                  className="auth-btn fpp-retry-btn"
-                  onClick={() => {
-                    setEmail("");
-                    setPhase(PHASE.IDLE);
-                  }}
+                  className="fpp-btn w-full"
+                  onClick={() => { setEmail(""); setPhase(PHASE.IDLE); }}
                 >
                   Try a different email
                 </button>
               </div>
             ) : (
-              /* ── IDLE / LOADING state ───────────────────────────── */
-              <form onSubmit={handleSubmit} className="space-y-6">
+              /* ── IDLE / LOADING ──────────────────────────────────────── */
+              <form onSubmit={handleSubmit} className="space-y-5 w-full">
                 <div>
                   <label className="auth-input-label">Email address</label>
                   <div className="relative">
@@ -105,21 +103,22 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  className="auth-btn"
+                  className="fpp-btn w-full"
                   disabled={phase === PHASE.LOADING || !email.trim()}
                 >
-                  {phase === PHASE.LOADING ? (
-                    <LoaderIcon className="w-full h-5 animate-spin text-center" />
-                  ) : (
-                    "Send reset link"
-                  )}
+                  {phase === PHASE.LOADING
+                    ? <LoaderIcon className="h-5 w-5 animate-spin mx-auto" />
+                    : "Send reset link"}
                 </button>
               </form>
             )}
 
-            {/* ── Footer link ─────────────────────────────────────── */}
+            {/* ── Back link ──────────────────────────────────────────── */}
             <div className="mt-6 text-center">
-              <Link to="/login" className="auth-link inline-flex items-center gap-1.5">
+              <Link
+                to="/login"
+                className="auth-link inline-flex items-center gap-1.5"
+              >
                 <ArrowLeftIcon className="w-3.5 h-3.5" />
                 Back to login
               </Link>
