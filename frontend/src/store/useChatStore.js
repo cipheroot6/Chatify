@@ -5,7 +5,8 @@ import { useAuthStore } from "./useAuthStore.js";
 import pusher from "../lib/pusher.js";
 
 export const useChatStore = create((set, get) => ({
-  allContacts: [],
+  searchResult: null,
+  searchError: null,
   chats: [],
   messages: [],
   onlineUsers: [],
@@ -24,13 +25,14 @@ export const useChatStore = create((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setSelectedUser: (selectedUser) => set({ selectedUser }),
 
-  getAllContacts: async () => {
-    set({ isUsersLoading: true });
+  findUserByEmail: async (email) => {
+    set({ isUsersLoading: true, searchResult: null, searchError: null });
     try {
-      const res = await axiosInstance.get("/api/messages/contacts");
-      set({ allContacts: res.data });
+      const res = await axiosInstance.post("/api/messages/find-user", { email });
+      set({ searchResult: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      const msg = error.response?.data?.message || "Something went wrong";
+      set({ searchError: msg });
     } finally {
       set({ isUsersLoading: false });
     }

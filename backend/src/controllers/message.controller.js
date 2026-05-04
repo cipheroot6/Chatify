@@ -3,13 +3,22 @@ import User from "../models/User.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import pusher from "../lib/pusher.js";
 
-export const getAllContacts = async (req, res, next) => {
+export const findUserByEmail = async (req, res, next) => {
   try {
+    const { email } = req.body;
     const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({
+
+    // Don't allow searching for yourself
+    const user = await User.findOne({
+      email: email.toLowerCase().trim(),
       _id: { $ne: loggedInUserId },
-    }).select("-password");
-    res.status(200).json(filteredUsers);
+    }).select("_id fullName email profilePic");
+
+    if (!user) {
+      return res.status(404).json({ message: "No user found with that email address." });
+    }
+
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }
