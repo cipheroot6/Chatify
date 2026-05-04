@@ -52,17 +52,17 @@ export const signUp = async (req, res, next) => {
     if (newUser) {
       await newUser.save();
       
-      res.status(201).json({
-        message: "Account created. Please check your email to verify your account.",
-        email,
-      });
-
       try {
         const verificationURL = `${ENV.CLIENT_URL}/verify-email?token=${rawToken}`;
         await sendVerificationEmail(email, fullName, verificationURL);
       } catch (error) {
-        logger.error("Error sending welcome email:", error);
+        logger.error("Error sending verification email:", error);
       }
+
+      res.status(201).json({
+        message: "Account created. Please check your email to verify your account.",
+        email,
+      });
     } else {
       return res.status(500).json({ message: "Internal server error" });
     }
