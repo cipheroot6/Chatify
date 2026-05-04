@@ -53,10 +53,12 @@ export const signUp = async (req, res, next) => {
       await newUser.save();
       
       try {
+        // Send both the welcome email and the verification email sequentially
         const verificationURL = `${ENV.CLIENT_URL}/verify-email?token=${rawToken}`;
+        await sendWelcomeEmail(email, fullName, ENV.CLIENT_URL);
         await sendVerificationEmail(email, fullName, verificationURL);
       } catch (error) {
-        logger.error("Error sending verification email:", error);
+        logger.error("Error sending emails:", error);
       }
 
       res.status(201).json({
