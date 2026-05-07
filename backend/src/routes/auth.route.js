@@ -43,10 +43,14 @@ authRouter.get("/check", isAuthorized, (req, res) =>
 authRouter.post("/pusher/auth", isAuthorized, (req, res) => {
   const { socket_id: socketId, channel_name: channel } = req.body;
   const user = req.user;
-  const authResponse = pusher.authorizeChannel(socketId, channel, {
-    user_id: user._id.toString(),
-    user_info: { name: user.fullName },
-  });
+
+  // Presence channels require user identity in the auth response.
+  // Private channels must NOT include it — the extra data corrupts the HMAC signature.
+  const presenceData = channel.startsWith("presence-")
+    ? { user_id: user._id.toString(), user_info: { name: user.fullName } }
+    : undefined;
+
+  const authResponse = pusher.authorizeChannel(socketId, channel, presenceData);
   res.send(authResponse);
 });
 

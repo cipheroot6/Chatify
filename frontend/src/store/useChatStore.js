@@ -101,20 +101,14 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  subscribeToMessages: (userId) => {
+  // Page-level subscription — active whenever the user is on the chat page,
+  // regardless of whether a conversation is selected.
+  subscribeToGlobalEvents: (userId) => {
     const channelName = `private-user-${userId}`;
     const channel = pusher.subscribe(channelName);
 
-    // Always unbind first to prevent duplicate handlers.
-    // This is especially important in React StrictMode which
-    // mounts/unmounts effects twice in development.
-    channel.unbind("new-message");
-
     channel.unbind("new-chat-partner");
-
-    channel.unbind("message-deleted");
-
-    channel.unbind("messages-read");
+    channel.unbind("new-message");
 
     channel.bind("new-chat-partner", (partnerData) => {
       const { chats } = get();
@@ -122,22 +116,6 @@ export const useChatStore = create((set, get) => ({
       if (!alreadyExists) {
         set((state) => ({ chats: [partnerData, ...state.chats] }));
       }
-    });
-
-    channel.bind("message-deleted", (data) => {
-      set((state) => ({
-        messages: state.messages.filter((m) => m._id !== data.messageId),
-      }));
-    });
-
-    channel.bind("messages-read", (data) => {
-      set((state) => ({
-        messages: state.messages.map((msg) =>
-          msg.receiverId?.toString() === data.readBy?.toString()
-            ? { ...msg, isRead: true }
-            : msg
-        ),
-      }));
     });
 
     channel.bind("new-message", (message) => {
@@ -154,6 +132,43 @@ export const useChatStore = create((set, get) => ({
       }
 
       set((state) => ({ messages: [...state.messages, message] }));
+    });
+  },
+
+  unsubscribeFromGlobalEvents: (userId) => {
+    const channelName = `private-user-${userId}`;
+    const channel = pusher.channel(channelName);
+    if (channel) {
+      channel.unbind("new-chat-partner");
+      channel.unbind("new-message");
+      channel.unbind("message-deleted");
+      channel.unbind("messages-read");
+    }
+    pusher.unsubscribe(channelName);
+  },
+
+  // Conversation-level subscription — active only when a chat is open.
+  subscribeToMessages: (userId) => {
+    const channelName = `private-user-${userId}`;
+    const channel = pusher.subscribe(channelName);
+
+    channel.unbind("message-deleted");
+    channel.unbind("messages-read");
+
+    channel.bind("message-deleted", (data) => {
+      set((state) => ({
+        messages: state.messages.filter((m) => m._id !== data.messageId),
+      }));
+    });
+
+    channel.bind("messages-read", (data) => {
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.receiverId?.toString() === data.readBy?.toString()
+            ? { ...msg, isRead: true }
+            : msg
+        ),
+      }));
     });
   },
 
@@ -181,14 +196,12 @@ export const useChatStore = create((set, get) => ({
     const channelName = `private-user-${userId}`;
     const channel = pusher.channel(channelName);
 
-    // Unbind the specific handler before unsubscribing
+    // Only unbind conversation-level events.
+    // The channel itself and page-level events (new-message, new-chat-partner)
+    // are managed by subscribeToGlobalEvents / unsubscribeFromGlobalEvents.
     if (channel) {
-      channel.unbind("new-message");
-      channel.unbind("new-chat-partner");
       channel.unbind("message-deleted");
       channel.unbind("messages-read");
     }
-
-    pusher.unsubscribe(channelName);
   },
 }));

@@ -8,6 +8,17 @@ import {
   Eye, EyeOff, Loader2, Save,
 } from "lucide-react";
 
+// Truncates long emails as: localprefix...@domain.com
+function truncateEmail(email) {
+  if (!email) return "";
+  const atIdx = email.lastIndexOf("@");
+  if (atIdx === -1) return email;
+  const local = email.slice(0, atIdx);
+  const domain = email.slice(atIdx); // includes the @
+  if (local.length <= 12) return email;
+  return local.slice(0, 10) + "..." + domain;
+}
+
 function SettingsPage() {
   const { authUser, updateProfile, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -150,7 +161,7 @@ function SettingsPage() {
             </div>
             <div>
               <p className="text-slate-200 font-medium">{authUser?.fullName}</p>
-              <p className="text-slate-400 text-sm">{authUser?.email}</p>
+              <p className="text-slate-400 text-sm" title={authUser?.email}>{truncateEmail(authUser?.email)}</p>
             </div>
           </div>
 

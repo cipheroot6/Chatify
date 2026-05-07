@@ -19,13 +19,22 @@ const NoChatHistoryPlaceholder = ({ name }) => {
         <div className="h-px w-32 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent mx-auto"></div>
       </div>
       <div className="flex flex-wrap gap-2 justify-center">
-        <button onClick={() => sendMessage({ text: "👋 Say Hello" })} className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors">
+        <button
+          onClick={() => sendMessage({ text: "👋 Hello" })}
+          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors"
+        >
           👋 Say Hello
         </button>
-        <button onClick={() => sendMessage({ text: "🤝 How are you?" })} className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors">
+        <button
+          onClick={() => sendMessage({ text: "🤝 How are you?" })}
+          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors"
+        >
           🤝 How are you?
         </button>
-        <button onClick={() => sendMessage({ text: "📅 Meet up soon?" })} className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors">
+        <button
+          onClick={() => sendMessage({ text: "📅 Meet up soon?" })}
+          className="px-4 py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors"
+        >
           📅 Meet up soon?
         </button>
       </div>

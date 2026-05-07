@@ -27,8 +27,16 @@ export const useAuthStore = create((set, get) => ({
   },
 
   subscribeToPresence: () => {
+    // Ensure the WebSocket is alive (no-op if already connected,
+    // critical after a previous pusher.disconnect() call).
+    pusher.connect();
+
+    // Clean up any stale channel from a previous session
     const existing = pusher.channel(PRESENCE_CHANNEL);
-    if (existing) return; // already subscribed
+    if (existing) {
+      existing.unbind_all();
+      pusher.unsubscribe(PRESENCE_CHANNEL);
+    }
 
     const channel = pusher.subscribe(PRESENCE_CHANNEL);
 
@@ -36,12 +44,15 @@ export const useAuthStore = create((set, get) => ({
       const { authUser } = get();
       const ids = [];
       members.each((member) => {
-        // Exclude self from the list
         if (member.id !== authUser?._id?.toString()) {
           ids.push(member.id);
         }
       });
       set({ onlineUsers: ids });
+    });
+
+    channel.bind("pusher:subscription_error", (error) => {
+      console.error("Presence channel subscription failed:", error);
     });
 
     channel.bind("pusher:member_added", (member) => {

@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
 import ProfileHeader from "../components/ProfileHeader";
 import ActiveTabSwitch from "../components/ActiveTabSwitch";
 import ChatsList from "../components/ChatsList";
@@ -7,10 +9,19 @@ import ChatContainer from "../components/ChatContainer";
 import NoConversationPlaceholder from "../components/NoConversationPlaceholder";
 
 function ChatPage() {
-  const { activeTab, selectedUser } = useChatStore();
+  const { activeTab, selectedUser, subscribeToGlobalEvents, unsubscribeFromGlobalEvents } = useChatStore();
+  const { authUser } = useAuthStore();
+
+  useEffect(() => {
+    if (!authUser?._id) return;
+    subscribeToGlobalEvents(authUser._id);
+    return () => unsubscribeFromGlobalEvents(authUser._id);
+  }, [authUser?._id, subscribeToGlobalEvents, unsubscribeFromGlobalEvents]);
 
   return (
-    <div className="h-screen flex bg-slate-900">
+    // h-[100dvh] instead of h-screen so mobile browser chrome + virtual keyboard
+    // don't push the input bar off screen
+    <div className="h-[100dvh] flex bg-slate-900">
       {/* Sidebar */}
       <div className={`
         ${selectedUser ? "hidden md:flex" : "flex"}
