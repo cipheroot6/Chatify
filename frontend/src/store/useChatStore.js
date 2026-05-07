@@ -9,7 +9,6 @@ export const useChatStore = create((set, get) => ({
   searchError: null,
   chats: [],
   messages: [],
-  onlineUsers: [],
   activeTab: "chats",
   selectedUser: null,
   isUsersLoading: false,

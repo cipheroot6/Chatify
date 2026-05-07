@@ -40,10 +40,13 @@ authRouter.get("/check", isAuthorized, (req, res) =>
   res.status(200).json(req.user),
 );
 
-authRouter.post("/pusher/auth", (req, res) => {
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-  const authResponse = pusher.authorizeChannel(socketId, channel);
+authRouter.post("/pusher/auth", isAuthorized, (req, res) => {
+  const { socket_id: socketId, channel_name: channel } = req.body;
+  const user = req.user;
+  const authResponse = pusher.authorizeChannel(socketId, channel, {
+    user_id: user._id.toString(),
+    user_info: { name: user.fullName },
+  });
   res.send(authResponse);
 });
 
