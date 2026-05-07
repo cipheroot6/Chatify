@@ -4,6 +4,8 @@ import {
   getMessagesByUserId,
   sendMessage,
   getChatPartner,
+  deleteMessage,
+  markMessagesAsRead,
 } from "../controllers/message.controller.js";
 import { isAuthorized } from "../middlewares/auth.middleware.js";
 import { arcjetProtection } from "../middlewares/arcjet.js";
@@ -20,5 +22,7 @@ messagesRouter.post("/find-user", validate(findUserByEmailSchema), findUserByEma
 messagesRouter.get("/chats", getChatPartner);
 messagesRouter.get("/:id", getMessagesByUserId);
 messagesRouter.post("/send/:id", sendMessage);
+messagesRouter.put("/read/:senderId", markMessagesAsRead);
+messagesRouter.delete("/:messageId", deleteMessage);
 
 export default messagesRouter;

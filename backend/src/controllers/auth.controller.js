@@ -1,4 +1,5 @@
 import User from "../models/User.model.js";
+import Message from "../models/message.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import { ENV } from "../lib/env.js";
@@ -119,20 +120,22 @@ export const logout = (_, res) => {
 
 export const updateProfile = async (req, res, next) => {
   try {
-    const { profilePic } = req.body;
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profilepic is required" });
+    const userId = req.user._id;
+    const updateData = {};
+
+    if (req.body.profilePic) {
+      const userResponse = await cloudinary.uploader.upload(req.body.profilePic);
+      updateData.profilePic = userResponse.secure_url;
+    }
+    if (req.body.fullName) {
+      updateData.fullName = req.body.fullName;
     }
 
-    const userId = req.user._id;
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
 
-    const userResponse = await cloudinary.uploader.upload(profilePic);
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profilePic: userResponse.secure_url },
-      { new: true },
-    );
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select("-password");
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -260,6 +263,49 @@ export const resetPassword = async (req, res, next) => {
     await user.save();
 
     res.status(200).json({ message: "Password reset successful. Please log in." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAccount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    await Message.deleteMany({
+      $or: [{ senderId: userId }, { receiverId: userId }],
+    });
+
+    await User.findByIdAndDelete(userId);
+
+    res.cookie("jwt", "", { maxAge: 0 });
+
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     next(error);
   }

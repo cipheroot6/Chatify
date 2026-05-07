@@ -23,3 +23,8 @@ export const resetPasswordSchema = z.object({
 export const findUserByEmailSchema = z.object({
   email: z.string().email(),
 });
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6).max(128),
+});

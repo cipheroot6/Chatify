@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import LandingPage from "./pages/LandingPage";
+import SettingsPage from "./pages/SettingsPage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
@@ -41,6 +42,10 @@ function App() {
             <Route
               path="/inbox"
               element={authUser ? <ChatPage /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/settings"
+              element={authUser ? <SettingsPage /> : <Navigate to="/login" />}
             />
             <Route
               path="/"

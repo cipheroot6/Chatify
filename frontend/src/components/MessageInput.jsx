@@ -1,17 +1,30 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useKeyboardSound from "../hooks/useKeyboardSound";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
-import { ImageIcon, SendIcon, XIcon } from "lucide-react";
+import { ImageIcon, SendIcon, SmileIcon, XIcon } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 
 function MessageInput() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const fileInputRef = useRef(null);
+  const emojiPickerRef = useRef(null);
 
   const { sendMessage, isSoundEnabled } = useChatStore();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -45,7 +58,7 @@ function MessageInput() {
   };
 
   return (
-    <div className="p-4 border-t border-slate-700/50">
+    <div className="p-4 border-t border-slate-700/50 relative">
       {imagePreview && (
         <div className="max-w-3xl mx-auto mb-3 flex items-center">
           <div className="relative">
@@ -62,6 +75,15 @@ function MessageInput() {
               <XIcon className="w-4 h-4" />
             </button>
           </div>
+        </div>
+      )}
+
+      {showEmojiPicker && (
+        <div ref={emojiPickerRef} className="absolute bottom-20 left-4 z-50">
+          <EmojiPicker onEmojiClick={(emojiData) => {
+            setText(prev => prev + emojiData.emoji);
+            setShowEmojiPicker(false);
+          }} />
         </div>
       )}
 
@@ -88,6 +110,13 @@ function MessageInput() {
           className="hidden"
         />
 
+        <button
+          type="button"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          className="bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors"
+        >
+          <SmileIcon className="w-5 h-5" />
+        </button>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}

@@ -75,11 +75,76 @@ export const sendMessage = async (req, res, next) => {
       image: imageUrl,
     });
 
+    // Check if this is the first message between these two users
+    const existingCount = await Message.countDocuments({
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId },
+      ],
+    });
+
     await message.save();
 
-    await pusher.trigger(`private-user-${receiverId}`, "new-message", message);
+    const senderUser = await User.findById(senderId).select("fullName profilePic");
+
+    const messagePayload = {
+      ...message.toObject(),
+      sender: { fullName: senderUser.fullName, profilePic: senderUser.profilePic },
+    };
+
+    await pusher.trigger(`private-user-${receiverId}`, "new-message", messagePayload);
+
+    // Notify the receiver of a new chat partner if this is their first conversation
+    if (existingCount === 0) {
+      const senderInfo = await User.findById(senderId).select("_id fullName email profilePic");
+      await pusher.trigger(`private-user-${receiverId}`, "new-chat-partner", senderInfo);
+    }
 
     res.status(201).json(message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMessage = async (req, res, next) => {
+  try {
+    const { messageId } = req.params;
+    const message = await Message.findById(messageId);
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    if (message.senderId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You can only delete your own messages" });
+    }
+
+    await message.deleteOne();
+
+    await pusher.trigger(`private-user-${message.senderId}`, "message-deleted", { messageId });
+    await pusher.trigger(`private-user-${message.receiverId}`, "message-deleted", { messageId });
+
+    res.status(200).json({ message: "Message deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markMessagesAsRead = async (req, res, next) => {
+  try {
+    const { senderId } = req.params;
+    const receiverId = req.user._id;
+
+    await Message.updateMany(
+      { senderId, receiverId, isRead: false },
+      { isRead: true }
+    );
+
+    await pusher.trigger(`private-user-${senderId}`, "messages-read", {
+      readBy: receiverId.toString(),
+    });
+
+    res.status(200).json({ message: "Messages marked as read" });
   } catch (error) {
     next(error);
   }

@@ -111,14 +111,71 @@ export const useChatStore = create((set, get) => ({
     // mounts/unmounts effects twice in development.
     channel.unbind("new-message");
 
+    channel.unbind("new-chat-partner");
+
+    channel.unbind("message-deleted");
+
+    channel.unbind("messages-read");
+
+    channel.bind("new-chat-partner", (partnerData) => {
+      const { chats } = get();
+      const alreadyExists = chats.some((chat) => chat._id === partnerData._id);
+      if (!alreadyExists) {
+        set((state) => ({ chats: [partnerData, ...state.chats] }));
+      }
+    });
+
+    channel.bind("message-deleted", (data) => {
+      set((state) => ({
+        messages: state.messages.filter((m) => m._id !== data.messageId),
+      }));
+    });
+
+    channel.bind("messages-read", (data) => {
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.receiverId?.toString() === data.readBy?.toString()
+            ? { ...msg, isRead: true }
+            : msg
+        ),
+      }));
+    });
+
     channel.bind("new-message", (message) => {
       const { selectedUser } = get();
 
-      // Only add the message if we're currently viewing that conversation
-      if (!selectedUser || selectedUser._id !== message.senderId) return;
+      if (!selectedUser || selectedUser._id !== message.senderId) {
+        if (message.sender?.fullName) {
+          const preview = message.text
+            ? message.text.substring(0, 30) + (message.text.length > 30 ? "..." : "")
+            : "\uD83D\uDCF7 Image";
+          toast.success(`${message.sender.fullName}: ${preview}`);
+        }
+        return;
+      }
 
       set((state) => ({ messages: [...state.messages, message] }));
     });
+  },
+
+  deleteMessage: async (messageId) => {
+    try {
+      await axiosInstance.delete(`/api/messages/${messageId}`);
+      set((state) => ({
+        messages: state.messages.filter((m) => m._id !== messageId),
+      }));
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete message");
+    }
+  },
+
+  markMessagesAsRead: async (senderId) => {
+    try {
+      await axiosInstance.put(`/api/messages/read/${senderId}`);
+    } catch (error) {
+      // Silently fail - read receipts are non-critical
+      console.log("Error marking messages as read:", error);
+    }
   },
 
   unsubscribeFromMessages: (userId) => {
@@ -128,6 +185,9 @@ export const useChatStore = create((set, get) => ({
     // Unbind the specific handler before unsubscribing
     if (channel) {
       channel.unbind("new-message");
+      channel.unbind("new-chat-partner");
+      channel.unbind("message-deleted");
+      channel.unbind("messages-read");
     }
 
     pusher.unsubscribe(channelName);

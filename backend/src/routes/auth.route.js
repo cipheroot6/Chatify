@@ -4,6 +4,8 @@ import {
   login,
   logout,
   updateProfile,
+  deleteAccount,
+  changePassword,
   verifyEmail,
   resendVerificationEmail,
   forgotPassword,
@@ -14,7 +16,7 @@ import { arcjetProtection } from "../middlewares/arcjet.js";
 import pusher from "../lib/pusher.js";
 import { logger } from "../lib/logger.js";
 import { validate } from "../middlewares/validate.js";
-import { signUpSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from "../schemas/auth.schema.js";
+import { signUpSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from "../schemas/auth.schema.js";
 
 const authRouter = express.Router();
 
@@ -31,6 +33,8 @@ authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword)
 authRouter.post("/logout", logout);
 
 authRouter.put("/update-profile", isAuthorized, updateProfile);
+authRouter.put("/change-password", isAuthorized, validate(changePasswordSchema), changePassword);
+authRouter.delete("/delete-account", isAuthorized, deleteAccount);
 
 authRouter.get("/check", isAuthorized, (req, res) =>
   res.status(200).json(req.user),
