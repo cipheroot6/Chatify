@@ -21,7 +21,7 @@ function ChatPage() {
   return (
     // h-[100dvh] instead of h-screen so mobile browser chrome + virtual keyboard
     // don't push the input bar off screen
-    <div className="h-[100dvh] flex bg-slate-900">
+    <div className="h-full flex bg-slate-900">
       {/* Sidebar */}
       <div className={`
         ${selectedUser ? "hidden md:flex" : "flex"}
