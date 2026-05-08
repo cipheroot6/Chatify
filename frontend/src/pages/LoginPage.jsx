@@ -15,7 +15,7 @@ function LoginPage({ myName }) {
     email: "",
     password: "",
   });
-  const { login, isLogingIn } = useAuthStore();
+  const { login, isLoggingIn } = useAuthStore();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,9 +83,9 @@ function LoginPage({ myName }) {
                   <button
                     className="auth-btn"
                     type="submit"
-                    disabled={isLogingIn}
+                    disabled={isLoggingIn}
                   >
-                    {isLogingIn ? (
+                    {isLoggingIn ? (
                       <LoaderIcon className="w-full h-5 animate-spin text-center" />
                     ) : (
                       "Sign In"

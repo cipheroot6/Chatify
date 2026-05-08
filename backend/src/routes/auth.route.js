@@ -20,15 +20,15 @@ import { signUpSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, c
 
 const authRouter = express.Router();
 
-authRouter.post("/sign-up", validate(signUpSchema), signUp);
+authRouter.post("/sign-up", arcjetProtection, validate(signUpSchema), signUp);
 
-authRouter.post("/login", validate(loginSchema), login);
+authRouter.post("/login", arcjetProtection, validate(loginSchema), login);
 
 authRouter.get("/verify-email", verifyEmail);
 authRouter.post("/resend-verification", validate(forgotPasswordSchema), resendVerificationEmail);
 
-authRouter.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
-authRouter.post("/reset-password", validate(resetPasswordSchema), resetPassword);
+authRouter.post("/forgot-password", arcjetProtection, validate(forgotPasswordSchema), forgotPassword);
+authRouter.post("/reset-password", arcjetProtection, validate(resetPasswordSchema), resetPassword);
 
 authRouter.post("/logout", logout);
 

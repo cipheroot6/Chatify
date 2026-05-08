@@ -1,4 +1,4 @@
-import { Navigate, Routes, Route } from "react-router";
+import { Navigate, Routes, Route, useLocation } from "react-router";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -17,10 +17,24 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
+  const location = useLocation();
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
+
+  useEffect(() => {
+    const titles = {
+      "/": "Chatify — Real-time Messaging",
+      "/login": "Login | Chatify",
+      "/signup": "Join Chatify",
+      "/inbox": "Messages | Chatify",
+      "/settings": "Settings | Chatify",
+      "/forgot-password": "Reset Password | Chatify",
+      "/verify-email": "Verifying Email | Chatify",
+    };
+    document.title = titles[location.pathname] || "Chatify";
+  }, [location]);
 
   if (isCheckingAuth) {
     return <PageLoader />;

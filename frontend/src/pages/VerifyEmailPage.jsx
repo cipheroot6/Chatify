@@ -23,20 +23,26 @@ export default function VerifyEmailPage() {
   const calledRef               = useRef(false);
 
   useEffect(() => {
+    if (phase === STATE.SUCCESS) {
+      const timer = setTimeout(() => navigate("/inbox", { replace: true }), 2200);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, navigate]);
+
+  useEffect(() => {
     if (!token || calledRef.current) return;
     calledRef.current = true;
 
     verifyEmail(token)
       .then(() => {
         setPhase(STATE.SUCCESS);
-        setTimeout(() => navigate("/inbox", { replace: true }), 2200);
       })
       .catch((err) => {
         const msg = err?.response?.data?.message || "This verification link is invalid or has expired.";
         setErrorMsg(msg);
         setPhase(STATE.ERROR);
       });
-  }, [token, verifyEmail, navigate]);
+  }, [token, verifyEmail]);
 
   return (
     <div className="w-full flex items-center justify-center p-4 bg-transparent min-h-[calc(100vh-100px)]">

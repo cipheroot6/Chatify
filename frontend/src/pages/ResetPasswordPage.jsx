@@ -37,6 +37,13 @@ export default function ResetPasswordPage() {
     form.confirm === form.password &&
     phase === PHASE.IDLE;
 
+  useEffect(() => {
+    if (phase === PHASE.SUCCESS) {
+      const timer = setTimeout(() => navigate("/login", { replace: true }), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -47,7 +54,6 @@ export default function ResetPasswordPage() {
     try {
       await resetPassword(token, form.password);
       setPhase(PHASE.SUCCESS);
-      setTimeout(() => navigate("/login", { replace: true }), 2500);
     } catch (err) {
       setServerError(
         err?.response?.data?.message ||

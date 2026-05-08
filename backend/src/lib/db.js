@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { logger } from "./logger.js";
+import { ENV } from "./env.js";
 
 let isConnected = false;
 
@@ -7,7 +8,7 @@ export const connectDB = async () => {
   if (isConnected) return;
 
   try {
-    const { MONGO_URI } = process.env;
+    const { MONGO_URI } = ENV;
     if (!MONGO_URI) throw new Error("MONGO_URI is not defined");
 
     const conn = await mongoose.connect(MONGO_URI);

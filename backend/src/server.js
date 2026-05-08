@@ -19,7 +19,7 @@ app.use(cookieParser());
 // (port 3000) are different origins. In production, the frontend and backend
 // share the same Vercel domain so the browser never sends an Origin header
 // that needs to be validated — CORS middleware is simply skipped.
-if (process.env.NODE_ENV !== "production") {
+if (ENV.NODE_ENV !== "production") {
   app.use(
     cors({
       credentials: true,
@@ -40,7 +40,7 @@ const PORT = ENV.PORT;
 
 const startServer = async () => {
   await connectDB();
-  if (process.env.NODE_ENV !== "production") {
+  if (ENV.NODE_ENV !== "production") {
     const server = app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
 
     server.on("error", (err) => {

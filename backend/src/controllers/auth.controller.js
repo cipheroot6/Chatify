@@ -1,5 +1,5 @@
 import User from "../models/User.model.js";
-import Message from "../models/message.js";
+import Message from "../models/Message.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import { ENV } from "../lib/env.js";
