@@ -13,8 +13,9 @@ function MessageInput() {
 
   const fileInputRef = useRef(null);
   const emojiPickerRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
-  const { sendMessage, isSoundEnabled } = useChatStore();
+  const { sendMessage, isSoundEnabled, sendTypingStatus, selectedUser, typingUsers } = useChatStore();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -25,6 +26,14 @@ function MessageInput() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setText("");
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+  }, [selectedUser]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -38,6 +47,10 @@ function MessageInput() {
     setText("");
     setImagePreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    // Stop typing indicator immediately after sending
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    sendTypingStatus(false);
   };
 
   const handleImageChange = (e) => {
@@ -59,6 +72,19 @@ function MessageInput() {
 
   return (
     <div className="p-3 sm:p-4 border-t border-slate-700/50 relative">
+      {/* Typing indicator — fixed just above the input form */}
+      {typingUsers.includes(selectedUser?._id?.toString()) && (
+        <div className="absolute bottom-full left-4 mb-1">
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50 backdrop-blur-sm">
+            <span className="flex gap-1">
+              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce"></span>
+            </span>
+          </div>
+        </div>
+      )}
+
       {imagePreview && (
         <div className="max-w-3xl mx-auto mb-3 flex items-center">
           <div className="relative">
@@ -105,6 +131,18 @@ function MessageInput() {
           onChange={(e) => {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
+
+            // Handle typing indicator
+            if (!typingTimeoutRef.current) {
+              sendTypingStatus(true);
+            } else {
+              clearTimeout(typingTimeoutRef.current);
+            }
+
+            typingTimeoutRef.current = setTimeout(() => {
+              sendTypingStatus(false);
+              typingTimeoutRef.current = null;
+            }, 3000);
           }}
           className="flex-1 min-w-0 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-3 sm:px-4 text-sm sm:text-base"
           placeholder="Type your message..."

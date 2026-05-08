@@ -14,6 +14,7 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) ?? true,
+  typingUsers: [], // Array of user IDs currently typing to us
 
   toggleSound: () => {
     const newValue = !get().isSoundEnabled;
@@ -109,6 +110,7 @@ export const useChatStore = create((set, get) => ({
 
     channel.unbind("new-chat-partner");
     channel.unbind("new-message");
+    channel.unbind("typing");
 
     channel.bind("new-chat-partner", (partnerData) => {
       const { chats } = get();
@@ -133,6 +135,18 @@ export const useChatStore = create((set, get) => ({
 
       set((state) => ({ messages: [...state.messages, message] }));
     });
+
+    channel.bind("typing", (data) => {
+      const { typingUsers } = get();
+      const typingUserId = data.userId.toString();
+      if (data.isTyping) {
+        if (!typingUsers.includes(typingUserId)) {
+          set({ typingUsers: [...typingUsers, typingUserId] });
+        }
+      } else {
+        set({ typingUsers: typingUsers.filter((id) => id !== typingUserId) });
+      }
+    });
   },
 
   unsubscribeFromGlobalEvents: (userId) => {
@@ -143,6 +157,7 @@ export const useChatStore = create((set, get) => ({
       channel.unbind("new-message");
       channel.unbind("message-deleted");
       channel.unbind("messages-read");
+      channel.unbind("typing");
     }
     pusher.unsubscribe(channelName);
   },
@@ -202,6 +217,18 @@ export const useChatStore = create((set, get) => ({
     if (channel) {
       channel.unbind("message-deleted");
       channel.unbind("messages-read");
+    }
+    set({ typingUsers: [] });
+  },
+
+  sendTypingStatus: async (isTyping) => {
+    const { selectedUser } = get();
+    if (!selectedUser) return;
+    try {
+      await axiosInstance.post(`/api/messages/typing/${selectedUser._id}`, { isTyping });
+    } catch (error) {
+      // Silently fail typing indicators
+      console.error("Error sending typing status:", error);
     }
   },
 }));

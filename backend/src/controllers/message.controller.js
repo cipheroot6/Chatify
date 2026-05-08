@@ -178,3 +178,20 @@ export const getChatPartner = async (req, res, next) => {
     next(error);
   }
 };
+
+export const sendTypingStatus = async (req, res, next) => {
+  try {
+    const { id: receiverId } = req.params;
+    const { isTyping } = req.body;
+    const senderId = req.user._id;
+
+    await pusher.trigger(`private-user-${receiverId}`, "typing", {
+      userId: senderId,
+      isTyping,
+    });
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
