@@ -2,7 +2,6 @@ html,
 body,
 #root {
   height: 100%;
-  overflow: hidden; /* prevent document-level scroll — all scrolling happens inside .messages */
   background-color: rgb(15 23 42);
 }
 
