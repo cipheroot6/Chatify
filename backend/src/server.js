@@ -14,6 +14,14 @@ const app = express();
 const __dirname = path.resolve();
 
 app.use(cookieParser());
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // CORS is only needed in development where Vite (port 5173) and Express
 // (port 3000) are different origins. In production, the frontend and backend

@@ -7,7 +7,7 @@ export const generateToken = (userId, res) => {
         throw new Error('JWT_SECRET is not configured');
     }
 
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: userId.toString() }, JWT_SECRET, { expiresIn: '7d' });
 
     res.cookie('jwt', token, {
         httpOnly: true,  // prevent XSS

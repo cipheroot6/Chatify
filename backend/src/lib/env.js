@@ -34,12 +34,14 @@ const requiredEnvVars = [
   "PUSHER_APP_ID",
   "PUSHER_KEY",
   "PUSHER_SECRET",
+  "PUSHER_CLUSTER",
 ];
 
 const missing = requiredEnvVars.filter((v) => !ENV[v]);
 if (missing.length > 0) {
   logger.error(`FATAL: Missing environment variables: ${missing.join(", ")}`);
+  // In production, we don't exit anymore so we can see the error in the browser via errorHandler
   if (ENV.NODE_ENV === "production") {
-    process.exit(1);
+    console.error("Missing env vars, but continuing to allow errorHandler to report them.");
   }
 }
