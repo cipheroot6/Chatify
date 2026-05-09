@@ -14,7 +14,7 @@ import helmet from "helmet";
 const app = express();
 const __dirname = path.resolve();
 
-app.use(helmet());
+// app.use(helmet());
 app.use(cookieParser());
 app.use(async (req, res, next) => {
   try {

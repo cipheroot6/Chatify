@@ -83,6 +83,7 @@ export const signUp = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
+  console.log("LOGIN ATTEMPT:", req.body.email);
   const { email, password } = req.body;
 
   if (!email || !password) {
