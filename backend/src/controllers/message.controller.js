@@ -2,20 +2,34 @@ import Message from "../models/Message.model.js";
 import User from "../models/User.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import pusher from "../lib/pusher.js";
+import { validateBase64Image } from "../lib/imageValidation.js";
+import mongoose from "mongoose";
+
+// Helper to validate ObjectId format to prevent CastError
+const validateObjectId = (id, res, label = "ID") => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400).json({ message: `Invalid ${label} format` });
+    return false;
+  }
+  return true;
+};
 
 export const findUserByEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
     const loggedInUserId = req.user._id;
 
+    const cleanEmail = String(email).toLowerCase().trim();
     // Don't allow searching for yourself
     const user = await User.findOne({
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
       _id: { $ne: loggedInUserId },
     }).select("_id fullName email profilePic");
 
     if (!user) {
-      return res.status(404).json({ message: "No user found with that email address." });
+      return res
+        .status(404)
+        .json({ message: "No user found with that email address." });
     }
 
     res.status(200).json(user);
@@ -28,6 +42,8 @@ export const getMessagesByUserId = async (req, res, next) => {
   try {
     const myId = req.user._id;
     const { id: userToChatId } = req.params;
+
+    if (!validateObjectId(userToChatId, res, "user ID")) return;
 
     const messages = await Message.find({
       $or: [
@@ -48,10 +64,15 @@ export const sendMessage = async (req, res, next) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
+    if (!validateObjectId(receiverId, res, "receiver ID")) return;
+
     if (!text && !image) {
       return res.status(400).json({ message: "Text or image is required" });
     }
-    if (senderId === receiverId) {
+    if (text && text.length > 1024) {
+      return res.status(400).json({ message: "Message must be less than 1024 characters" });
+    }
+    if (senderId.toString() === receiverId.toString()) {
       return res
         .status(400)
         .json({ message: "Cannot send message to yourself" });
@@ -63,6 +84,10 @@ export const sendMessage = async (req, res, next) => {
 
     let imageUrl;
     if (image) {
+      const { valid, error } = validateBase64Image(image);
+      if (!valid) {
+        return res.status(400).json({ message: error });
+      }
       // upload image to cloudinary
       const uploadedResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadedResponse.secure_url;
@@ -85,19 +110,34 @@ export const sendMessage = async (req, res, next) => {
 
     await message.save();
 
-    const senderUser = await User.findById(senderId).select("fullName profilePic");
+    const senderUser = await User.findById(senderId).select(
+      "fullName profilePic",
+    );
 
     const messagePayload = {
       ...message.toObject(),
-      sender: { fullName: senderUser.fullName, profilePic: senderUser.profilePic },
+      sender: {
+        fullName: senderUser.fullName,
+        profilePic: senderUser.profilePic,
+      },
     };
 
-    await pusher.trigger(`private-user-${receiverId}`, "new-message", messagePayload);
+    await pusher.trigger(
+      `private-user-${receiverId}`,
+      "new-message",
+      messagePayload,
+    );
 
     // Notify the receiver of a new chat partner if this is their first conversation
     if (existingCount === 0) {
-      const senderInfo = await User.findById(senderId).select("_id fullName email profilePic");
-      await pusher.trigger(`private-user-${receiverId}`, "new-chat-partner", senderInfo);
+      const senderInfo = await User.findById(senderId).select(
+        "_id fullName email profilePic",
+      );
+      await pusher.trigger(
+        `private-user-${receiverId}`,
+        "new-chat-partner",
+        senderInfo,
+      );
     }
 
     res.status(201).json(message);
@@ -109,6 +149,9 @@ export const sendMessage = async (req, res, next) => {
 export const deleteMessage = async (req, res, next) => {
   try {
     const { messageId } = req.params;
+
+    if (!validateObjectId(messageId, res, "message ID")) return;
+
     const message = await Message.findById(messageId);
 
     if (!message) {
@@ -116,13 +159,23 @@ export const deleteMessage = async (req, res, next) => {
     }
 
     if (message.senderId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "You can only delete your own messages" });
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own messages" });
     }
 
     await message.deleteOne();
 
-    await pusher.trigger(`private-user-${message.senderId}`, "message-deleted", { messageId });
-    await pusher.trigger(`private-user-${message.receiverId}`, "message-deleted", { messageId });
+    await pusher.trigger(
+      `private-user-${message.senderId}`,
+      "message-deleted",
+      { messageId },
+    );
+    await pusher.trigger(
+      `private-user-${message.receiverId}`,
+      "message-deleted",
+      { messageId },
+    );
 
     res.status(200).json({ message: "Message deleted" });
   } catch (error) {
@@ -135,9 +188,11 @@ export const markMessagesAsRead = async (req, res, next) => {
     const { senderId } = req.params;
     const receiverId = req.user._id;
 
+    if (!validateObjectId(senderId, res, "sender ID")) return;
+
     await Message.updateMany(
       { senderId, receiverId, isRead: false },
-      { isRead: true }
+      { isRead: true },
     );
 
     await pusher.trigger(`private-user-${senderId}`, "messages-read", {
@@ -171,7 +226,7 @@ export const getChatPartner = async (req, res, next) => {
 
     const chatPartners = await User.find({
       _id: { $in: chatPartnerIds },
-    }).select("-password");
+    }).select("_id fullName email profilePic");
 
     res.status(200).json(chatPartners);
   } catch (error) {
@@ -184,6 +239,8 @@ export const sendTypingStatus = async (req, res, next) => {
     const { id: receiverId } = req.params;
     const { isTyping } = req.body;
     const senderId = req.user._id;
+
+    if (!validateObjectId(receiverId, res, "receiver ID")) return;
 
     await pusher.trigger(`private-user-${receiverId}`, "typing", {
       userId: senderId,

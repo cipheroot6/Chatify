@@ -9,10 +9,12 @@ import { ENV } from "./lib/env.js";
 import cors from "cors";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { logger } from "./lib/logger.js";
+import helmet from "helmet";
 
 const app = express();
 const __dirname = path.resolve();
 
+app.use(helmet());
 app.use(cookieParser());
 app.use(async (req, res, next) => {
   try {

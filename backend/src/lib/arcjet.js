@@ -1,28 +1,90 @@
 import arcjet, { shield, detectBot, slidingWindow } from "@arcjet/node";
 import { ENV } from "./env.js";
 
+// Base rules for all Arcjet instances
+const baseRules = [
+  shield({ mode: "LIVE" }),
+  detectBot({
+    mode: "LIVE",
+    allow: ["CATEGORY:SEARCH_ENGINE"],
+  }),
+];
+
+// General API (100 req / 60 sec)
 const aj = arcjet({
   key: ENV.ARCJET_API_KEY,
   rules: [
-    // Shield protects your app from common attacks e.g. SQL injection
-    shield({ mode: "LIVE" }),
-    // Create a bot detection rule
-    detectBot({
-      mode: "LIVE", // Blocks requests. Use "DRY_RUN" to log only
-      // Block all bots except the following
-      allow: [
-        "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
-        // Uncomment to allow these other common bot categories
-        // See the full list at https://arcjet.com/bot-list
-        //"CATEGORY:MONITOR", // Uptime monitoring services
-        //"CATEGORY:PREVIEW", // Link previews e.g. Slack, Discord
-      ],
-    }),
-    // Create a token bucket rate limit. Other algorithms are supported.
+    ...baseRules,
     slidingWindow({
       mode: "LIVE",
       max: 100,
       interval: 60,
+    }),
+  ],
+});
+
+// auth endpoints (5 req / 10 mins)
+export const signUpAj = arcjet({
+  key: ENV.ARCJET_API_KEY,
+  rules: [
+    ...baseRules,
+    slidingWindow({
+      mode: "LIVE",
+      max: 5,
+      interval: 600,
+    }),
+  ],
+});
+
+// Login (10 req / 15 mins)
+export const loginAj = arcjet({
+  key: ENV.ARCJET_API_KEY,
+  rules: [
+    ...baseRules,
+    slidingWindow({
+      mode: "LIVE",
+      max: 10,
+      interval: 900,
+    }),
+  ],
+});
+
+// Sensitive Email Operations (5 req / 1 hour)
+// For forgot-password, resend-verification, verify-email
+export const emailAj = arcjet({
+  key: ENV.ARCJET_API_KEY,
+  rules: [
+    ...baseRules,
+    slidingWindow({
+      mode: "LIVE",
+      max: 5,
+      interval: 3600,
+    }),
+  ],
+});
+
+export const pusherAj = arcjet({
+  key: ENV.ARCJET_API_KEY,
+  rules: [
+    ...baseRules,
+    // Less aggressive rate limit for Pusher
+    slidingWindow({
+      mode: "LIVE",
+      max: 200,
+      interval: 60,
+    }),
+  ],
+});
+
+// User Search (20 req / 1 hour) to prevent email scraping
+export const searchAj = arcjet({
+  key: ENV.ARCJET_API_KEY,
+  rules: [
+    ...baseRules,
+    slidingWindow({
+      mode: "LIVE",
+      max: 20,
+      interval: 3600,
     }),
   ],
 });

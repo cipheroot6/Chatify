@@ -20,5 +20,4 @@ function ActiveTabSwitch() {
     </div>
   );
 }
-<div />;
 export default ActiveTabSwitch;

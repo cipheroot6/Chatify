@@ -35,18 +35,21 @@ function MessageInput() {
     }
   }, [selectedUser]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
-    if (isSoundEnabled) playRandomKeyStrokeSound();
 
-    sendMessage({
+    const messageData = {
       text: text.trim(),
       image: imagePreview,
-    });
+    };
+
     setText("");
-    setImagePreview("");
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+
+    await sendMessage(messageData);
+    if (isSoundEnabled) playRandomKeyStrokeSound();
 
     // Stop typing indicator immediately after sending
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

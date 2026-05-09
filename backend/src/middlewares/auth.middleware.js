@@ -10,9 +10,6 @@ export const isAuthorized = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, ENV.JWT_SECRET);
-    if (!decoded) {
-      return res.status(401).json({ message: "Invalid token" });
-    }
 
     const user = await User.findById(decoded.userId).select("-password");
     if (!user) {
@@ -26,6 +23,15 @@ export const isAuthorized = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Session expired, please log in again" });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    if (error.name === "NotBeforeError") {
+      return res.status(401).json({ message: "Token not yet valid" });
+    }
     next(error);
   }
 };

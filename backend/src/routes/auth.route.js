@@ -12,35 +12,68 @@ import {
   resetPassword,
 } from "../controllers/auth.controller.js";
 import { isAuthorized } from "../middlewares/auth.middleware.js";
-import { arcjetProtection } from "../middlewares/arcjet.js";
+import {
+  arcjetProtection,
+  pusherArcjetProtection,
+  signUpArcjetProtection,
+  loginArcjetProtection,
+  emailArcjetProtection,
+} from "../middlewares/arcjet.js";
 import pusher from "../lib/pusher.js";
 import { logger } from "../lib/logger.js";
 import { validate } from "../middlewares/validate.js";
-import { signUpSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema, changePasswordSchema } from "../schemas/auth.schema.js";
+import {
+  signUpSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  changePasswordSchema,
+} from "../schemas/auth.schema.js";
 
 const authRouter = express.Router();
 
-authRouter.post("/sign-up", arcjetProtection, validate(signUpSchema), signUp);
+authRouter.post("/sign-up", signUpArcjetProtection, validate(signUpSchema), signUp);
 
-authRouter.post("/login", arcjetProtection, validate(loginSchema), login);
+authRouter.post("/login", loginArcjetProtection, validate(loginSchema), login);
 
-authRouter.get("/verify-email", verifyEmail);
-authRouter.post("/resend-verification", validate(forgotPasswordSchema), resendVerificationEmail);
+authRouter.get("/verify-email", emailArcjetProtection, verifyEmail);
+authRouter.post(
+  "/resend-verification",
+  emailArcjetProtection,
+  validate(forgotPasswordSchema),
+  resendVerificationEmail,
+);
 
-authRouter.post("/forgot-password", arcjetProtection, validate(forgotPasswordSchema), forgotPassword);
-authRouter.post("/reset-password", arcjetProtection, validate(resetPasswordSchema), resetPassword);
+authRouter.post(
+  "/forgot-password",
+  emailArcjetProtection,
+  validate(forgotPasswordSchema),
+  forgotPassword,
+);
+authRouter.post(
+  "/reset-password",
+  emailArcjetProtection,
+  validate(resetPasswordSchema),
+  resetPassword,
+);
 
-authRouter.post("/logout", logout);
+authRouter.post("/logout", arcjetProtection, logout);
 
-authRouter.put("/update-profile", isAuthorized, updateProfile);
-authRouter.put("/change-password", isAuthorized, validate(changePasswordSchema), changePassword);
-authRouter.delete("/delete-account", isAuthorized, deleteAccount);
+authRouter.put("/update-profile", arcjetProtection, isAuthorized, updateProfile);
+authRouter.put(
+  "/change-password",
+  arcjetProtection,
+  isAuthorized,
+  validate(changePasswordSchema),
+  changePassword,
+);
+authRouter.delete("/delete-account", arcjetProtection, isAuthorized, deleteAccount);
 
-authRouter.get("/check", isAuthorized, (req, res) =>
+authRouter.get("/check", arcjetProtection, isAuthorized, (req, res) =>
   res.status(200).json(req.user),
 );
 
-authRouter.post("/pusher/auth", isAuthorized, (req, res) => {
+authRouter.post("/pusher/auth", pusherArcjetProtection, isAuthorized, (req, res) => {
   const { socket_id: socketId, channel_name: channel } = req.body;
   const user = req.user;
 
@@ -55,7 +88,7 @@ authRouter.post("/pusher/auth", isAuthorized, (req, res) => {
 });
 
 // Pusher user authentication - required for private channels
-authRouter.post("/pusher/user-auth", isAuthorized, (req, res) => {
+authRouter.post("/pusher/user-auth", pusherArcjetProtection, isAuthorized, (req, res) => {
   const socketId = req.body.socket_id || req.body.socketId;
   const user = req.user;
 

@@ -8,6 +8,7 @@ import cloudinary from "../lib/cloudinary.js";
 import pusher from "../lib/pusher.js";
 import { logger } from "../lib/logger.js";
 import { generateRawToken, hashToken, tokenExpiry } from "../lib/tokens.js";
+import { validateBase64Image } from "../lib/imageValidation.js";
 
 export const signUp = async (req, res, next) => {
   const { fullName, email, password } = req.body;
@@ -29,9 +30,14 @@ export const signUp = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid email" });
     }
 
-    const user = await User.findOne({ email });
+    const cleanEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (user) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    if (fullName.length > 100) {
+      return res.status(400).json({ message: "Full name must be less than 100 characters" });
     }
 
     // hash password
@@ -54,10 +60,12 @@ export const signUp = async (req, res, next) => {
       await newUser.save();
       
       try {
-        // Send both the welcome email and the verification email sequentially
+        // Send both the welcome email and the verification email concurrently
         const verificationURL = `${ENV.CLIENT_URL}/verify-email?token=${rawToken}`;
-        await sendWelcomeEmail(email, fullName, ENV.CLIENT_URL);
-        await sendVerificationEmail(email, fullName, verificationURL);
+        await Promise.all([
+          sendWelcomeEmail(email, fullName, ENV.CLIENT_URL),
+          sendVerificationEmail(email, fullName, verificationURL),
+        ]);
       } catch (error) {
         logger.error("Error sending emails:", error);
       }
@@ -82,7 +90,8 @@ export const login = async (req, res, next) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const cleanEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(404).json({ message: "Invalid credentials" });
     }
@@ -113,7 +122,11 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const logout = (_, res) => {
+export const logout = (req, res) => {
+  const token = req.cookies.jwt;
+  if (!token) {
+    return res.status(400).json({ message: "No session to log out of" });
+  }
   res.cookie("jwt", "", { maxAge: 0 });
   res.status(200).json({ message: "Logged out successfully" });
 };
@@ -124,10 +137,17 @@ export const updateProfile = async (req, res, next) => {
     const updateData = {};
 
     if (req.body.profilePic) {
+      const { valid, error } = validateBase64Image(req.body.profilePic);
+      if (!valid) {
+        return res.status(400).json({ message: error });
+      }
       const userResponse = await cloudinary.uploader.upload(req.body.profilePic);
       updateData.profilePic = userResponse.secure_url;
     }
     if (req.body.fullName) {
+      if (req.body.fullName.length > 100) {
+        return res.status(400).json({ message: "Full name must be less than 100 characters" });
+      }
       updateData.fullName = req.body.fullName;
     }
 
@@ -135,7 +155,7 @@ export const updateProfile = async (req, res, next) => {
       return res.status(400).json({ message: "No fields to update" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select("-password");
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true }).select("_id fullName email profilePic");
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -189,7 +209,8 @@ export const resendVerificationEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    const cleanEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
       // Return 200 even if user doesn't exist to prevent email enumeration
@@ -218,7 +239,8 @@ export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    const cleanEmail = String(email).toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       // Always return 200 to prevent email enumeration
       return res.status(200).json({ message: "If that email exists, a password reset link has been sent." });
@@ -253,6 +275,10 @@ export const resetPassword = async (req, res, next) => {
       return res.status(400).json({
         message: "Invalid or expired reset token. Please request a new one.",
       });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -299,6 +325,10 @@ export const changePassword = async (req, res, next) => {
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
     }
 
     const salt = await bcrypt.genSalt(10);

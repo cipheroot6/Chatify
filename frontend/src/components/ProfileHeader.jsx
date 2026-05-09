@@ -1,14 +1,15 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
-import { LogOutIcon, VolumeOffIcon, Volume2Icon, Settings } from "lucide-react";
+import { LogOutIcon, VolumeOffIcon, Volume2Icon, Settings, LoaderIcon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import toast from "react-hot-toast";
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
 function ProfileHeader() {
   const navigate = useNavigate();
-  const { logout, authUser, updateProfile } = useAuthStore();
+  const { logout, authUser, updateProfile, isUpdatingProfile } = useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
   const [selectedImg, setSelectedImg] = useState(null);
 
@@ -18,13 +19,35 @@ function ProfileHeader() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Please select a valid image file (JPEG, PNG, GIF, or WebP)");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("File is too large. Maximum size is 5MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
     reader.onloadend = async () => {
       const base64Image = reader.result;
+      const prevImage = selectedImg;
       setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
+
+      try {
+        await updateProfile({ profilePic: base64Image });
+      } catch (error) {
+        setSelectedImg(prevImage);
+      }
     };
   };
 
@@ -36,16 +59,25 @@ function ProfileHeader() {
           <div className="avatar online">
             <button
               className="size-14 rounded-full overflow-hidden relative group"
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => !isUpdatingProfile && fileInputRef.current.click()}
+              disabled={isUpdatingProfile}
             >
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="User image"
-                className="size-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-xs">Change</span>
-              </div>
+              {isUpdatingProfile ? (
+                <div className="size-full flex items-center justify-center bg-slate-700">
+                  <LoaderIcon className="size-5 animate-spin text-cyan-400" />
+                </div>
+              ) : (
+                <>
+                  <img
+                    src={selectedImg || authUser.profilePic || "/avatar.png"}
+                    alt="User image"
+                    className="size-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <span className="text-white text-xs">Change</span>
+                  </div>
+                </>
+              )}
             </button>
 
             <input
@@ -54,6 +86,7 @@ function ProfileHeader() {
               ref={fileInputRef}
               onChange={handleImageUpload}
               className="hidden"
+              disabled={isUpdatingProfile}
             />
           </div>
 

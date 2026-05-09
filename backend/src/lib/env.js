@@ -40,8 +40,7 @@ const requiredEnvVars = [
 const missing = requiredEnvVars.filter((v) => !ENV[v]);
 if (missing.length > 0) {
   logger.error(`FATAL: Missing environment variables: ${missing.join(", ")}`);
-  // In production, we don't exit anymore so we can see the error in the browser via errorHandler
   if (ENV.NODE_ENV === "production") {
-    console.error("Missing env vars, but continuing to allow errorHandler to report them.");
+    process.exit(1);
   }
 }

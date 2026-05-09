@@ -37,7 +37,7 @@ export function createWelcomeEmailTemplate(name, clientURL) {
     </div>
     
     <div style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px;">
-      <p style="margin: 0 0 10px 0;">© 2025 Chatify. All rights reserved.</p>
+      <p style="margin: 0 0 10px 0;">© ${new Date().getFullYear()} Chatify. All rights reserved.</p>
       <p style="margin: 0;">Don't want to receive these emails? <a href="#" style="color: #94a3b8; text-decoration: underline;">Unsubscribe here</a>.</p>
     </div>
   </body>
@@ -77,7 +77,7 @@ export function createVerificationEmailTemplate(name, verificationURL) {
     </div>
     
     <div style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px;">
-      <p style="margin: 0;">© 2025 Chatify. All rights reserved.</p>
+      <p style="margin: 0;">© ${new Date().getFullYear()} Chatify. All rights reserved.</p>
     </div>
   </body>
   </html>
@@ -116,7 +116,7 @@ export function createPasswordResetEmailTemplate(name, resetURL) {
     </div>
     
     <div style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px;">
-      <p style="margin: 0;">© 2025 Chatify. All rights reserved.</p>
+      <p style="margin: 0;">© ${new Date().getFullYear()} Chatify. All rights reserved.</p>
     </div>
   </body>
   </html>
