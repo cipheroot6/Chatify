@@ -34,7 +34,7 @@ const authRouter = express.Router();
 
 authRouter.post("/sign-up", signUpArcjetProtection, validate(signUpSchema), signUp);
 
-authRouter.post("/login", validate(loginSchema), login);
+authRouter.post("/login", loginArcjetProtection, validate(loginSchema), login);
 
 authRouter.get("/verify-email", emailArcjetProtection, verifyEmail);
 authRouter.post(

@@ -10,9 +10,12 @@ const baseRules = [
   }),
 ];
 
+// Use ARCJET_KEY as per the Vercel environment variables
+const key = ENV.ARCJET_KEY;
+
 // General API (100 req / 60 sec)
 const aj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     slidingWindow({
@@ -25,7 +28,7 @@ const aj = arcjet({
 
 // auth endpoints (5 req / 10 mins)
 export const signUpAj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     slidingWindow({
@@ -38,7 +41,7 @@ export const signUpAj = arcjet({
 
 // Login (10 req / 15 mins)
 export const loginAj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     slidingWindow({
@@ -52,7 +55,7 @@ export const loginAj = arcjet({
 // Sensitive Email Operations (5 req / 1 hour)
 // For forgot-password, resend-verification, verify-email
 export const emailAj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     slidingWindow({
@@ -64,7 +67,7 @@ export const emailAj = arcjet({
 });
 
 export const pusherAj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     // Less aggressive rate limit for Pusher
@@ -78,7 +81,7 @@ export const pusherAj = arcjet({
 
 // User Search (20 req / 1 hour) to prevent email scraping
 export const searchAj = arcjet({
-  key: ENV.ARCJET_API_KEY,
+  key,
   rules: [
     ...baseRules,
     slidingWindow({
